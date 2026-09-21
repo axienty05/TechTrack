@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/** daisyUI */
+@plugin "daisyui" {
+    themes: corporate --default, dark --prefersdark;
+}
+
+/* maryUI */
+@source "../../vendor/robsontenorio/mary/src/View/Components/**/*.php";
+
+/* Theme toggle */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/**
+ * Paginator - Traditional style
+ */
+.mary-table-pagination span[aria-current="page"] > span {
+    @apply bg-primary text-base-100;
+}
+
+.mary-table-pagination button {
+    @apply cursor-pointer;
+}
