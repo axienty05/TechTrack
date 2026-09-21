@@ -9,6 +9,8 @@ use App\Models\WorkLog;
 use App\Models\Category;
 use App\Models\Department;
 use App\Models\LogAttachment;
+use App\Models\ComputerDevice;
+use App\Models\PcMaintenanceRecord;
 use Illuminate\Support\Facades\Storage;
 use Mary\Traits\Toast;
 
@@ -282,6 +284,56 @@ class Index extends Component
         $this->afterPhoto = null;
         $this->newAttachments = [];
         $this->existingAttachments = [];
+
+        // ─────────────────────────────────────────────────────────────
+        // AUTO-LINK ke PC Maintenance
+        // Jika task_type = preventive DAN device_identifier cocok dengan
+        // salah satu Comp Name di tabel computer_devices, maka otomatis
+        // buat / update record pc_maintenance_records.
+        // ─────────────────────────────────────────────────────────────
+        if ($this->task_type === 'preventive' && !empty($this->device_identifier)) {
+            $cleanId  = strtolower(trim($this->device_identifier));
+            $namePart = preg_replace('/^(pc[-\s]?|laptop[-\s]?|komp[-\s]?)/i', '', trim($this->device_identifier));
+            $cleanName = strtolower(trim($namePart));
+
+            $device = ComputerDevice::whereRaw('LOWER(comp_name) = ?', [$cleanId])->first()
+                ?? ComputerDevice::whereRaw('LOWER(comp_name) LIKE ?', ['%' . $cleanId . '%'])->first()
+                ?? ComputerDevice::whereRaw('LOWER(user_name) = ?', [$cleanName])->first()
+                ?? ComputerDevice::whereRaw('LOWER(user_name) LIKE ?', ['%' . $cleanName . '%'])->first();
+
+            if ($device) {
+                $period = $log->started_at
+                    ? \Carbon\Carbon::parse($log->started_at)->format('Y-m')
+                    : date('Y-m');
+
+                PcMaintenanceRecord::updateOrCreate(
+                    [
+                        'computer_device_id' => $device->id,
+                        'work_log_id'        => $log->id,
+                    ],
+                    [
+                        'technician_id'    => auth()->id(),
+                        'maintenance_date' => $log->started_at
+                            ? \Carbon\Carbon::parse($log->started_at)->toDateString()
+                            : now()->toDateString(),
+                        'period'           => $period,
+                        'notes'            => $log->action_taken ?: $log->description,
+                        'user_sign_name'   => $this->requester_name ?: $device->user_name,
+                        'is_user_signed'   => false,
+                        'overall_condition' => match($this->priority) {
+                            'critical' => 'critical',
+                            'high'     => 'needs_attention',
+                            default    => 'good',
+                        },
+                    ]
+                );
+
+                $this->success(
+                    'Work Log disimpan & otomatis tercatat di PC Maintenance untuk perangkat <strong>' .
+                    $device->comp_name . '</strong> (' . $device->user_name . ')!'
+                );
+            }
+        }
 
         $this->showModal = false;
     }

@@ -121,7 +121,7 @@
                     <tr>
                         <th class="w-12">#</th>
                         <th>User</th>
-                        <th>Comp Name</th>
+                        <th class="whitespace-nowrap min-w-[140px]">Comp Name</th>
                         <th>Dept</th>
                         <th>Tanggal Maintenance</th>
                         <th>Kondisi & Notes</th>
@@ -141,8 +141,11 @@
                                 <div class="font-semibold text-sm">{{ $device->user_name }}</div>
                                 <div class="text-xs opacity-50">{{ $device->device_type }}</div>
                             </td>
-                            <td>
-                                <span class="badge badge-outline badge-sm font-mono font-bold">{{ $device->comp_name }}</span>
+                            <td class="whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-base-200/80 border border-base-content/10 font-mono text-xs font-semibold tracking-wide text-base-content whitespace-nowrap shadow-xs">
+                                    <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary/80 shrink-0" />
+                                    <span>{{ $device->comp_name }}</span>
+                                </div>
                             </td>
                             <td>
                                 @if($device->department)
@@ -257,9 +260,13 @@
             <x-mary-icon name="o-clipboard-document-check" class="text-primary w-6 h-6" />
             Form Maintenance PC
         </h3>
-        <p class="text-sm opacity-60 mb-4">
-            <span class="font-mono font-bold text-primary">{{ $maintCompName }}</span> — {{ $maintUserName }}
-        </p>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-base-200 border border-base-content/10 font-mono text-xs font-bold text-primary">
+                <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary" />
+                {{ $maintCompName }}
+            </span>
+            <span class="text-sm opacity-70">— {{ $maintUserName }}</span>
+        </div>
 
         <form wire:submit="saveMaintenance" class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
@@ -366,9 +373,12 @@
                     <x-mary-icon name="o-computer-desktop" class="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                    <div class="font-bold font-mono">{{ $historyDevice->comp_name }}</div>
-                    <div class="text-sm opacity-70">{{ $historyDevice->user_name }} — {{ $historyDevice->department->name ?? '-' }}</div>
-                    <span class="badge badge-sm badge-outline capitalize">{{ $historyDevice->location }}</span>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-base-300/70 font-bold font-mono text-sm tracking-wide text-base-content border border-base-content/10">
+                        <x-mary-icon name="o-computer-desktop" class="w-4 h-4 text-primary" />
+                        <span>{{ $historyDevice->comp_name }}</span>
+                    </div>
+                    <div class="text-sm opacity-70 mt-1">{{ $historyDevice->user_name }} — {{ $historyDevice->department->name ?? '-' }}</div>
+                    <span class="badge badge-sm badge-ghost capitalize mt-1">{{ $historyDevice->location }}</span>
                 </div>
             </div>
 
