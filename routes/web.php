@@ -9,6 +9,7 @@ use App\Livewire\Departments\Index as DepartmentsIndex;
 use App\Livewire\Categories\Index as CategoriesIndex;
 use App\Livewire\Users\Index as UsersIndex;
 use App\Livewire\Profile\Edit as ProfileEdit;
+use App\Livewire\PcMaintenance\Index as PcMaintenanceIndex;
 
 Route::get('/login', Login::class)->name('login');
 
@@ -16,6 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/work-logs', WorkLogsIndex::class)->name('work-logs');
     Route::get('/routine-schedules', RoutineSchedulesIndex::class)->name('routine-schedules');
+    Route::get('/pc-maintenance', PcMaintenanceIndex::class)->name('pc-maintenance');
     Route::get('/profile', ProfileEdit::class)->name('profile');
 
     // Master Data - hanya bisa diakses oleh admin dan it_lead

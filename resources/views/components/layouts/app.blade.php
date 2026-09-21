@@ -61,6 +61,7 @@
                 <x-mary-menu-item title="Dashboard" icon="o-home" route="dashboard" />
                 <x-mary-menu-item title="Work Logs" icon="o-document-text" route="work-logs" />
                 <x-mary-menu-item title="Routine Schedules" icon="o-calendar" route="routine-schedules" />
+                <x-mary-menu-item title="PC Maintenance" icon="o-computer-desktop" route="pc-maintenance" />
 
                 @if(in_array(auth()->user()->role ?? '', ['admin', 'it_lead']))
                     <x-mary-menu-sub title="Master Data" icon="o-cog-6-tooth">

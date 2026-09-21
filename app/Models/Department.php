@@ -20,4 +20,9 @@ class Department extends Model
     {
         return $this->hasMany(WorkLog::class);
     }
+
+    public function computerDevices(): HasMany
+    {
+        return $this->hasMany(ComputerDevice::class);
+    }
 }
