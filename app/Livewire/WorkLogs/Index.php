@@ -24,6 +24,9 @@ class Index extends Component
     public string $categoryFilter = '';
     public string $departmentFilter = '';
     public string $priorityFilter = '';
+    public string $startDate = '';
+    public string $endDate = '';
+    public string $datePreset = '';
 
     // Modals
     public bool $showModal = false;
@@ -350,6 +353,59 @@ class Index extends Component
         $this->success('Pekerjaan berhasil dihapus.');
     }
 
+    public function setDatePreset(string $preset): void
+    {
+        $this->datePreset = $preset;
+
+        switch ($preset) {
+            case 'today':
+                $this->startDate = now()->toDateString();
+                $this->endDate = now()->toDateString();
+                break;
+            case 'this_week':
+                $this->startDate = now()->startOfWeek()->toDateString();
+                $this->endDate = now()->endOfWeek()->toDateString();
+                break;
+            case 'this_month':
+                $this->startDate = now()->startOfMonth()->toDateString();
+                $this->endDate = now()->endOfMonth()->toDateString();
+                break;
+            case 'all':
+            default:
+                $this->datePreset = '';
+                $this->startDate = '';
+                $this->endDate = '';
+                break;
+        }
+
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset([
+            'search',
+            'statusFilter',
+            'categoryFilter',
+            'departmentFilter',
+            'priorityFilter',
+            'startDate',
+            'endDate',
+            'datePreset',
+        ]);
+        $this->resetPage();
+    }
+
+    public function updated($propertyName): void
+    {
+        if (in_array($propertyName, ['search', 'statusFilter', 'categoryFilter', 'departmentFilter', 'priorityFilter', 'startDate', 'endDate'])) {
+            if (in_array($propertyName, ['startDate', 'endDate'])) {
+                $this->datePreset = 'custom';
+            }
+            $this->resetPage();
+        }
+    }
+
     public function render()
     {
         $query = WorkLog::with(['user', 'department', 'category', 'attachments'])
@@ -367,6 +423,24 @@ class Index extends Component
             ->when($this->categoryFilter, fn($q) => $q->where('category_id', $this->categoryFilter))
             ->when($this->departmentFilter, fn($q) => $q->where('department_id', $this->departmentFilter))
             ->when($this->priorityFilter, fn($q) => $q->where('priority', $this->priorityFilter))
+            ->when($this->startDate, function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereDate('started_at', '>=', $this->startDate)
+                        ->orWhere(function ($s) {
+                            $s->whereNull('started_at')
+                              ->whereDate('created_at', '>=', $this->startDate);
+                        });
+                });
+            })
+            ->when($this->endDate, function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereDate('started_at', '<=', $this->endDate)
+                        ->orWhere(function ($s) {
+                            $s->whereNull('started_at')
+                              ->whereDate('created_at', '<=', $this->endDate);
+                        });
+                });
+            })
             ->latest('started_at')
             ->latest('id');
 

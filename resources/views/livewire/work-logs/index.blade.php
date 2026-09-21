@@ -47,6 +47,72 @@
                 </select>
             </div>
         </div>
+
+        <!-- Row 2: Filter Tanggal & Presets & Prioritas -->
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pt-3 border-t border-base-content/5">
+            <!-- Left: Date Filter & Presets -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-base-content/80">
+                    <x-mary-icon name="o-calendar" class="w-4 h-4 text-primary" />
+                    <span>Filter Tanggal:</span>
+                </div>
+
+                <!-- Presets Button Group -->
+                <div class="join">
+                    <button type="button" wire:click="setDatePreset('all')"
+                        class="btn btn-xs join-item {{ empty($datePreset) && empty($startDate) && empty($endDate) ? 'btn-primary' : 'btn-ghost' }}">
+                        Semua
+                    </button>
+                    <button type="button" wire:click="setDatePreset('today')"
+                        class="btn btn-xs join-item {{ $datePreset === 'today' ? 'btn-primary' : 'btn-ghost' }}">
+                        Hari Ini
+                    </button>
+                    <button type="button" wire:click="setDatePreset('this_week')"
+                        class="btn btn-xs join-item {{ $datePreset === 'this_week' ? 'btn-primary' : 'btn-ghost' }}">
+                        Minggu Ini
+                    </button>
+                    <button type="button" wire:click="setDatePreset('this_month')"
+                        class="btn btn-xs join-item {{ $datePreset === 'this_month' ? 'btn-primary' : 'btn-ghost' }}">
+                        Bulan Ini
+                    </button>
+                </div>
+
+                <div class="h-4 w-[1px] bg-base-content/10 hidden sm:block"></div>
+
+                <!-- Custom Range Date Inputs -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs opacity-60 font-medium">Dari:</span>
+                        <input type="date" wire:model.live="startDate"
+                            class="input input-bordered input-xs h-8 text-xs rounded-lg" />
+                    </div>
+                    <span class="text-xs opacity-40">-</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs opacity-60 font-medium">Sampai:</span>
+                        <input type="date" wire:model.live="endDate"
+                            class="input input-bordered input-xs h-8 text-xs rounded-lg" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Priority Filter & Reset Button -->
+            <div class="flex items-center gap-2 self-end lg:self-auto">
+                <select wire:model.live="priorityFilter" class="select select-bordered select-xs h-8 text-xs rounded-lg">
+                    <option value="">Semua Prioritas</option>
+                    <option value="critical">🔴 Critical</option>
+                    <option value="high">🟠 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                </select>
+
+                @if($search || $statusFilter || $categoryFilter || $departmentFilter || $priorityFilter || $startDate || $endDate || $datePreset)
+                    <button type="button" wire:click="resetFilters" class="btn btn-ghost btn-xs h-8 text-error gap-1 rounded-lg" title="Reset Semua Filter">
+                        <x-mary-icon name="o-x-mark" class="w-3.5 h-3.5" />
+                        <span>Reset</span>
+                    </button>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Worklog Table Card -->
