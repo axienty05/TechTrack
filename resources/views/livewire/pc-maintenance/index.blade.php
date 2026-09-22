@@ -323,7 +323,7 @@
     <!-- MODAL: INPUT / EDIT MAINTENANCE -->
     <!-- ======================================================= -->
     <x-mary-modal wire:model="showMaintenanceModal" class="backdrop-blur-sm" box-class="max-w-2xl p-4 sm:p-5 w-full max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between pb-3 mb-3 border-b border-base-content/10">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-base-content/10 pr-8">
             <div class="flex items-center gap-2.5">
                 <div class="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
                     <x-mary-icon name="o-clipboard-document-check" class="w-5 h-5" />
@@ -337,9 +337,6 @@
                     </div>
                 </div>
             </div>
-            <button type="button" wire:click="$set('showMaintenanceModal', false)" class="btn btn-ghost btn-sm btn-square text-base-content/50 hover:text-base-content">
-                <x-mary-icon name="o-x-mark" class="w-5 h-5" />
-            </button>
         </div>
 
         <form wire:submit="saveMaintenance" class="space-y-3">
