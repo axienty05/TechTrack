@@ -101,8 +101,8 @@
             <div>
                 <select wire:model.live="statusFilter" class="select select-bordered select-sm w-full">
                     <option value="all">Semua Status</option>
-                    <option value="completed">âœ… Sudah Di-maintenance</option>
-                    <option value="pending">â³ Belum Di-maintenance</option>
+                    <option value="completed">Sudah Di-maintenance</option>
+                    <option value="pending">Belum Di-maintenance</option>
                 </select>
             </div>
             {{-- Periode --}}
@@ -332,7 +332,7 @@
                 <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary" />
                 {{ $maintCompName }}
             </span>
-            <span class="text-xs sm:text-sm opacity-70">â€” {{ $maintUserName }}</span>
+            <span class="text-xs sm:text-sm opacity-70">&mdash; {{ $maintUserName }}</span>
         </div>
 
         <form wire:submit="saveMaintenance" class="space-y-4">
@@ -387,9 +387,9 @@
                 <div class="sm:col-span-1">
                     <label class="label text-xs font-bold uppercase opacity-70">Kondisi PC</label>
                     <select wire:model="maintCondition" class="select select-bordered w-full select-sm">
-                        <option value="good">âœ… Baik</option>
-                        <option value="needs_attention">âš ï¸ Perlu Perhatian</option>
-                        <option value="critical">ðŸ”´ Kritis</option>
+                        <option value="good">Baik</option>
+                        <option value="needs_attention">Perlu Perhatian</option>
+                        <option value="critical">Kritis</option>
                     </select>
                 </div>
                 <div class="sm:col-span-2">
@@ -444,7 +444,7 @@
                         <x-mary-icon name="o-computer-desktop" class="w-4 h-4 text-primary flex-shrink-0" />
                         <span class="truncate">{{ $historyDevice->comp_name }}</span>
                     </div>
-                    <div class="text-xs sm:text-sm opacity-70 mt-1 truncate">{{ $historyDevice->user_name }} â€” {{ $historyDevice->department->name ?? '-' }}</div>
+                    <div class="text-xs sm:text-sm opacity-70 mt-1 truncate">{{ $historyDevice->user_name }} &mdash; {{ $historyDevice->department->name ?? '-' }}</div>
                     <span class="badge badge-sm badge-ghost capitalize mt-1">{{ $historyDevice->location }}</span>
                 </div>
             </div>
