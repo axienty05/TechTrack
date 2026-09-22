@@ -322,107 +322,115 @@
     <!-- ======================================================= -->
     <!-- MODAL: INPUT / EDIT MAINTENANCE -->
     <!-- ======================================================= -->
-    <x-mary-modal wire:model="showMaintenanceModal" class="backdrop-blur-sm" box-class="max-w-2xl p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
-        <h3 class="font-bold text-base sm:text-lg mb-1 flex items-center gap-2">
-            <x-mary-icon name="o-clipboard-document-check" class="text-primary w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-            <span>Form Maintenance PC</span>
-        </h3>
-        <div class="flex items-center gap-2 mb-4 flex-wrap">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-base-200 border border-base-content/10 font-mono text-xs font-bold text-primary">
-                <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary" />
-                {{ $maintCompName }}
-            </span>
-            <span class="text-xs sm:text-sm opacity-70">&mdash; {{ $maintUserName }}</span>
+    <x-mary-modal wire:model="showMaintenanceModal" class="backdrop-blur-sm" box-class="max-w-2xl p-4 sm:p-5 w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-base-content/10">
+            <div class="flex items-center gap-2.5">
+                <div class="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+                    <x-mary-icon name="o-clipboard-document-check" class="w-5 h-5" />
+                </div>
+                <div>
+                    <h3 class="font-bold text-base sm:text-lg leading-tight">Form Maintenance PC</h3>
+                    <div class="flex items-center gap-2 mt-0.5 text-xs text-base-content/70">
+                        <span class="font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">{{ $maintCompName }}</span>
+                        <span>&bull;</span>
+                        <span>{{ $maintUserName }}</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" wire:click="$set('showMaintenanceModal', false)" class="btn btn-ghost btn-sm btn-square text-base-content/50 hover:text-base-content">
+                <x-mary-icon name="o-x-mark" class="w-5 h-5" />
+            </button>
         </div>
 
-        <form wire:submit="saveMaintenance" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form wire:submit="saveMaintenance" class="space-y-3">
+            {{-- Row 1: Tanggal & Periode --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Tanggal Pelaksanaan *</label>
+                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Tanggal Pelaksanaan *</label>
                     <input type="date" wire:model="maintDate" class="input input-bordered w-full input-sm" />
                 </div>
                 <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Periode (YYYY-MM) *</label>
+                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Periode (YYYY-MM) *</label>
                     <input type="month" wire:model="maintPeriod" class="input input-bordered w-full input-sm" />
                 </div>
             </div>
 
             {{-- Checklist --}}
-            <div>
-                <label class="label text-xs font-bold uppercase opacity-70 mb-2">Checklist Pemeriksaan Standar</label>
-                <div class="bg-base-200/50 rounded-xl p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label class="flex items-center gap-2 cursor-pointer">
+            <div class="bg-base-200/50 rounded-xl p-3 border border-base-content/5">
+                <div class="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2">Checklist Pemeriksaan Standar</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:text-sm">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.clean_dust" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Pembersihan debu & casing</span>
+                        <span>Pembersihan debu & casing</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.check_thermal" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Pengecekan & ganti pasta thermal</span>
+                        <span>Pengecekan & ganti pasta thermal</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.antivirus_scan" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Scan & update antivirus</span>
+                        <span>Scan & update antivirus</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.disk_cleanup" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Disk cleanup & hapus temp file</span>
+                        <span>Disk cleanup & hapus temp file</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.os_update" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Update OS / Windows Update</span>
+                        <span>Update OS / Windows Update</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.network_test" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Tes koneksi jaringan</span>
+                        <span>Tes koneksi jaringan</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <input type="checkbox" wire:model="checklist.backup_data" class="checkbox checkbox-success checkbox-sm" />
-                        <span class="text-sm">Pengecekan/backup data penting</span>
+                        <span>Pengecekan / backup data penting</span>
                     </label>
                 </div>
             </div>
 
-            {{-- Kondisi & Notes --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div class="sm:col-span-1">
-                    <label class="label text-xs font-bold uppercase opacity-70">Kondisi PC</label>
-                    <select wire:model="maintCondition" class="select select-bordered w-full select-sm">
-                        <option value="good">Baik</option>
-                        <option value="needs_attention">Perlu Perhatian</option>
-                        <option value="critical">Kritis</option>
-                    </select>
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="label text-xs font-bold uppercase opacity-70">Catatan / Temuan</label>
-                    <textarea wire:model="maintNotes" rows="2"
-                        class="textarea textarea-bordered w-full text-sm"
-                        placeholder="Debu banyak, antivirus diperbarui, dll..."></textarea>
-                </div>
-            </div>
-
-            {{-- User Sign --}}
-            <div class="bg-base-200/50 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                <div class="flex-1 w-full sm:w-auto">
-                    <label class="label text-xs font-bold uppercase opacity-70">Nama Pemakai / PIC (Verifikasi)</label>
-                    <input type="text" wire:model="maintUserSignName"
-                        class="input input-bordered w-full input-sm"
-                        placeholder="Nama user yang menerima maintenance" />
-                </div>
-                <div class="form-control">
-                    <label class="label cursor-pointer gap-2 mt-1 sm:mt-6">
+            {{-- Row: Kondisi & Catatan + User Sign --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {{-- Kiri: Kondisi & Verifikasi User --}}
+                <div class="space-y-2.5">
+                    <div>
+                        <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Kondisi PC</label>
+                        <select wire:model="maintCondition" class="select select-bordered w-full select-sm">
+                            <option value="good">Baik</option>
+                            <option value="needs_attention">Perlu Perhatian</option>
+                            <option value="critical">Kritis</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Nama Pemakai / PIC</label>
+                        <input type="text" wire:model="maintUserSignName"
+                            class="input input-bordered w-full input-sm"
+                            placeholder="Nama user pemakai" />
+                    </div>
+                    <label class="flex items-center gap-2 cursor-pointer pt-0.5">
                         <input type="checkbox" wire:model="maintIsUserSigned" class="checkbox checkbox-primary checkbox-sm" />
-                        <span class="label-text text-sm font-medium">Sudah konfirmasi TTD</span>
+                        <span class="text-xs font-medium opacity-80">Sudah konfirmasi / verifikasi pemakai</span>
                     </label>
+                </div>
+
+                {{-- Kanan: Catatan / Temuan --}}
+                <div class="flex flex-col">
+                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Catatan / Temuan</label>
+                    <textarea wire:model="maintNotes" rows="4"
+                        class="textarea textarea-bordered w-full text-xs sm:text-sm flex-1 resize-none"
+                        placeholder="Catatan hasil pengecekan, sparepart yang diganti, dll..."></textarea>
                 </div>
             </div>
 
-            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-4 border-t border-base-content/10">
+            {{-- Footer Buttons --}}
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-base-content/10">
                 <div>
                     @if($maintHasExisting)
                         <button type="button" wire:click="deleteCurrentMaintenance"
                             wire:confirm="Hapus status maintenance untuk periode ini? Perangkat ini akan kembali berstatus Belum Di-maintenance."
-                            class="btn btn-error btn-outline btn-sm gap-1 w-full sm:w-auto">
-                            <x-mary-icon name="o-trash" class="w-4 h-4" />
+                            class="btn btn-error btn-outline btn-xs sm:btn-sm gap-1 w-full sm:w-auto">
+                            <x-mary-icon name="o-trash" class="w-3.5 h-3.5" />
                             Hapus Status Maintenance
                         </button>
                     @endif
