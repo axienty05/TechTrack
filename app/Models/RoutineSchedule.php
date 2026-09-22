@@ -51,12 +51,13 @@ class RoutineSchedule extends Model
         }
 
         return match ($this->frequency) {
-            'daily'     => $lastMaintenanceDate->copy()->addDay(),
-            'weekly'    => $lastMaintenanceDate->copy()->addWeek(),
-            'monthly'   => $lastMaintenanceDate->copy()->addMonth(),
-            'quarterly' => $lastMaintenanceDate->copy()->addMonths(3),
-            'yearly'    => $lastMaintenanceDate->copy()->addYear(),
-            default     => $lastMaintenanceDate->copy()->addMonth(),
+            'daily'                     => $lastMaintenanceDate->copy()->addDay(),
+            'weekly'                    => $lastMaintenanceDate->copy()->addWeek(),
+            'monthly'                   => $lastMaintenanceDate->copy()->addMonth(),
+            'quarterly'                 => $lastMaintenanceDate->copy()->addMonths(3),
+            'semester', 'semi_annually' => $lastMaintenanceDate->copy()->addMonths(6),
+            'yearly'                    => $lastMaintenanceDate->copy()->addYear(),
+            default                     => $lastMaintenanceDate->copy()->addMonth(),
         };
     }
 
@@ -74,12 +75,13 @@ class RoutineSchedule extends Model
     public function getFrequencyLabelAttribute(): string
     {
         return match ($this->frequency) {
-            'daily'     => 'Harian',
-            'weekly'    => 'Mingguan',
-            'monthly'   => 'Bulanan',
-            'quarterly' => 'Triwulan (3 Bulan)',
-            'yearly'    => 'Tahunan',
-            default     => ucfirst($this->frequency),
+            'daily'                     => 'Harian',
+            'weekly'                    => 'Mingguan',
+            'monthly'                   => 'Bulanan',
+            'quarterly'                 => 'Triwulan (3 Bulan)',
+            'semester', 'semi_annually' => 'Semester (6 Bulan)',
+            'yearly'                    => 'Tahunan',
+            default                     => ucfirst($this->frequency),
         };
     }
 

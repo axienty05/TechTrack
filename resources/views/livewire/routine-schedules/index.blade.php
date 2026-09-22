@@ -113,7 +113,8 @@
                         <option value="daily">Harian (Daily)</option>
                         <option value="weekly">Mingguan (Weekly)</option>
                         <option value="monthly">Bulanan (Monthly)</option>
-                        <option value="quarterly">Triwulan (Quarterly)</option>
+                        <option value="quarterly">Triwulan (3 Bulan)</option>
+                        <option value="semester">Semester (6 Bulan)</option>
                         <option value="yearly">Tahunan (Yearly)</option>
                     </select>
                 </div>
