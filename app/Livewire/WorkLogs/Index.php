@@ -489,6 +489,12 @@ class Index extends Component
                     ? \Carbon\Carbon::parse($log->started_at)->format('Y-m')
                     : date('Y-m');
 
+                // Jika sebelumnya work log ini pernah mencatat maintenance untuk perangkat lain,
+                // hapus catatan di perangkat lama tersebut agar tidak tertinggal aktif/ganda
+                PcMaintenanceRecord::where('work_log_id', $log->id)
+                    ->where('computer_device_id', '!=', $device->id)
+                    ->delete();
+
                 PcMaintenanceRecord::updateOrCreate(
                     [
                         'computer_device_id' => $device->id,
@@ -529,6 +535,10 @@ class Index extends Component
                 Storage::disk('public')->delete($att->file_path);
             }
         }
+
+        // Hapus juga catatan maintenance yang bersumber dari work log ini
+        PcMaintenanceRecord::where('work_log_id', $log->id)->delete();
+
         $log->delete();
         $this->success('Pekerjaan berhasil dihapus.');
     }

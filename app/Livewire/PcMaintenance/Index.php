@@ -44,6 +44,7 @@ class Index extends Component
         'network_test' => true,
         'backup_data' => false,
     ];
+    public bool $maintHasExisting = false;
 
     // History Modal State
     public bool $showHistoryModal = false;
@@ -119,6 +120,8 @@ class Index extends Component
             ->latest('maintenance_date')
             ->first();
 
+        $this->maintHasExisting = (bool) $existing;
+
         if ($existing) {
             $this->maintDate = $existing->maintenance_date->format('Y-m-d');
             $this->maintNotes = $existing->notes ?? '';
@@ -142,6 +145,29 @@ class Index extends Component
         }
 
         $this->showMaintenanceModal = true;
+    }
+
+    public function deleteCurrentMaintenance()
+    {
+        if ($this->selectedDeviceId) {
+            $period = $this->maintPeriod ?: ($this->selectedPeriod ?: date('Y-m'));
+            PcMaintenanceRecord::where('computer_device_id', $this->selectedDeviceId)
+                ->where('period', $period)
+                ->delete();
+
+            $this->showMaintenanceModal = false;
+            $this->success("Status maintenance untuk periode {$period} berhasil direset / dihapus!");
+        }
+    }
+
+    public function deleteRecord(int $recordId)
+    {
+        $rec = PcMaintenanceRecord::findOrFail($recordId);
+        $devId = $rec->computer_device_id;
+        $rec->delete();
+
+        $this->historyDevice = ComputerDevice::with(['department', 'maintenanceRecords.technician'])->find($devId);
+        $this->success('Catatan riwayat maintenance berhasil dihapus.');
     }
 
     public function saveMaintenance()

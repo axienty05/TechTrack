@@ -416,12 +416,24 @@
                 </div>
             </div>
 
-            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-4 border-t border-base-content/10">
-                <button type="button" wire:click="$set('showMaintenanceModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
-                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto">
-                    <x-mary-icon name="o-check" class="w-4 h-4" />
-                    Simpan
-                </button>
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-4 border-t border-base-content/10">
+                <div>
+                    @if($maintHasExisting)
+                        <button type="button" wire:click="deleteCurrentMaintenance"
+                            wire:confirm="Hapus status maintenance untuk periode ini? Perangkat ini akan kembali berstatus Belum Di-maintenance."
+                            class="btn btn-error btn-outline btn-sm gap-1 w-full sm:w-auto">
+                            <x-mary-icon name="o-trash" class="w-4 h-4" />
+                            Hapus Status Maintenance
+                        </button>
+                    @endif
+                </div>
+                <div class="flex items-center justify-end gap-2 w-full sm:w-auto">
+                    <button type="button" wire:click="$set('showMaintenanceModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto">
+                        <x-mary-icon name="o-check" class="w-4 h-4" />
+                        Simpan
+                    </button>
+                </div>
             </div>
         </form>
     </x-mary-modal>
@@ -482,7 +494,12 @@
                                         {{ ['good'=>'Baik','needs_attention'=>'Perlu Perhatian','critical'=>'Kritis'][$rec->overall_condition] ?? $rec->overall_condition }}
                                     </span>
                                 </div>
-                                <div class="text-xs opacity-50 font-mono">{{ $rec->period }}</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-xs opacity-50 font-mono">{{ $rec->period }}</div>
+                                    <button type="button" wire:click="deleteRecord({{ $rec->id }})" wire:confirm="Hapus catatan riwayat maintenance ini?" class="btn btn-ghost btn-xs btn-square text-error" title="Hapus Riwayat Ini">
+                                        <x-mary-icon name="o-trash" class="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             </div>
                             <div class="text-xs text-base-content/60 mb-2">
                                 Teknisi: <span class="font-semibold">{{ $rec->technician->name ?? 'Unknown' }}</span>
