@@ -33,29 +33,48 @@
                     @forelse($schedules as $item)
                         <tr class="hover">
                             <td>
-                                <div class="font-bold text-sm">{{ $item->title }}</div>
+                                <div class="font-bold text-sm whitespace-nowrap">{{ $item->title }}</div>
                                 @if($item->description)
-                                    <div class="text-xs opacity-60 line-clamp-1 max-w-sm">{{ $item->description }}</div>
+                                    <div class="text-xs opacity-60 line-clamp-1 max-w-xs sm:max-w-sm">{{ $item->description }}</div>
                                 @endif
                             </td>
-                            <td>
-                                <span class="badge badge-ghost badge-sm">{{ $item->category->name ?? '-' }}</span>
+                            <td class="whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-base-200/80 border border-base-content/10 text-xs font-medium text-base-content">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+                                    <span>{{ $item->category->name ?? '-' }}</span>
+                                </span>
                             </td>
-                            <td>
+                            <td class="whitespace-nowrap">
                                 @php
-                                    $locColor = match($item->pc_location) {
-                                        'kantor' => 'badge-info',
-                                        'pabrik' => 'badge-warning',
-                                        default  => 'badge-ghost',
+                                    $locStyle = match($item->pc_location) {
+                                        'kantor' => 'bg-info/10 text-info border-info/20',
+                                        'pabrik' => 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                        default  => 'bg-base-200 text-base-content/70 border-base-content/10',
                                     };
                                 @endphp
-                                <span class="badge badge-sm {{ $locColor }} font-semibold">{{ $item->pc_location_label }}</span>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg border text-xs font-semibold {{ $locStyle }}">
+                                    {{ $item->pc_location_label }}
+                                </span>
                             </td>
-                            <td>
-                                <span class="badge badge-outline badge-sm uppercase font-bold text-xs">{{ $item->frequency_label }}</span>
+                            <td class="whitespace-nowrap">
+                                @php
+                                    $freqStyle = match($item->frequency) {
+                                        'daily'                     => 'bg-info/10 text-info border-info/20',
+                                        'weekly'                    => 'bg-accent/10 text-accent border-accent/20',
+                                        'monthly'                   => 'bg-primary/10 text-primary border-primary/20',
+                                        'quarterly'                 => 'bg-secondary/10 text-secondary border-secondary/20',
+                                        'semester', 'semi_annually' => 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+                                        'yearly'                    => 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+                                        default                     => 'bg-base-200 text-base-content/80 border-base-content/10',
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold {{ $freqStyle }}">
+                                    <x-mary-icon name="o-arrow-path" class="w-3.5 h-3.5 shrink-0" />
+                                    <span>{{ $item->frequency_label }}</span>
+                                </span>
                             </td>
-                            <td>
-                                <span class="text-xs opacity-70 whitespace-nowrap">{{ $item->target_day ?: 'Sesuai Jadwal' }}</span>
+                            <td class="whitespace-nowrap">
+                                <span class="text-xs opacity-75 font-medium">{{ $item->target_day ?: 'Sesuai Jadwal' }}</span>
                             </td>
                             <td>
                                 <button wire:click="toggleActive({{ $item->id }})" class="btn btn-xs {{ $item->is_active ? 'btn-success' : 'btn-ghost opacity-50' }}">
