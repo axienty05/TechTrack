@@ -1,4 +1,4 @@
-﻿<div class="space-y-4 sm:space-y-5">
+<div class="space-y-4 sm:space-y-5">
 
     {{-- ======================================================= --}}
     {{-- HEADER & STATS --}}
@@ -67,12 +67,14 @@
     {{-- ======================================================= --}}
     <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 p-3 sm:p-4 space-y-3">
         {{-- Tab Kantor / Pabrik --}}
-        <div class="tabs tabs-boxed bg-base-200/60 w-full sm:w-fit grid grid-cols-2 sm:flex">
-            <button wire:click="$set('activeTab','kantor')" class="tab gap-2 {{ $activeTab === 'kantor' ? 'tab-active' : '' }}">
+        <div class="inline-flex p-1 bg-base-200/80 rounded-xl gap-1 w-full sm:w-auto">
+            <button type="button" wire:click="setActiveTab('kantor')"
+                class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer {{ $activeTab === 'kantor' ? 'bg-base-100 text-primary shadow-sm' : 'text-base-content/70 hover:text-base-content hover:bg-base-100/50' }}">
                 <x-mary-icon name="o-building-office" class="w-4 h-4" />
                 <span>Unit Kantor ({{ $totalKantor }})</span>
             </button>
-            <button wire:click="$set('activeTab','pabrik')" class="tab gap-2 {{ $activeTab === 'pabrik' ? 'tab-active' : '' }}">
+            <button type="button" wire:click="setActiveTab('pabrik')"
+                class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer {{ $activeTab === 'pabrik' ? 'bg-base-100 text-secondary shadow-sm' : 'text-base-content/70 hover:text-base-content hover:bg-base-100/50' }}">
                 <x-mary-icon name="o-building-storefront" class="w-4 h-4" />
                 <span>Unit Pabrik ({{ $totalPabrik }})</span>
             </button>

@@ -83,6 +83,12 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function setActiveTab(string $tab)
+    {
+        $this->activeTab = in_array($tab, ['kantor', 'pabrik']) ? $tab : 'kantor';
+        $this->resetPage();
+    }
+
     public function updatingDepartmentFilter()
     {
         $this->resetPage();
