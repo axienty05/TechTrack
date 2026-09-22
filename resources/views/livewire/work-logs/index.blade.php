@@ -1,16 +1,18 @@
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Manajemen Worklog IT</h1>
-            <p class="text-sm opacity-60">Catat, pantau, dan kelola seluruh penanganan insiden dan pemeliharaan IT</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Manajemen Worklog IT</h1>
+            <p class="text-xs sm:text-sm opacity-60">Catat, pantau, dan kelola seluruh penanganan insiden dan pemeliharaan IT</p>
         </div>
-        <x-mary-button label="Tambah Worklog Baru" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg" />
+        <div class="w-full sm:w-auto">
+            <x-mary-button label="Tambah Worklog Baru" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg w-full sm:w-auto" />
+        </div>
     </div>
 
     <!-- Search & Filter Bar -->
-    <div class="bg-base-100 p-4 rounded-2xl shadow-md border border-base-content/5 space-y-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+    <div class="bg-base-100 p-3 sm:p-4 rounded-2xl shadow-md border border-base-content/5 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
             <div class="sm:col-span-2">
                 <x-mary-input 
                     wire:model.live.debounce.300ms="search" 
@@ -51,53 +53,55 @@
         <!-- Row 2: Filter Tanggal & Presets & Prioritas -->
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pt-3 border-t border-base-content/5">
             <!-- Left: Date Filter & Presets -->
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <div class="flex items-center gap-1.5 text-xs font-semibold text-base-content/80">
-                    <x-mary-icon name="o-calendar" class="w-4 h-4 text-primary" />
+                    <x-mary-icon name="o-calendar" class="w-4 h-4 text-primary flex-shrink-0" />
                     <span>Filter Tanggal:</span>
                 </div>
 
-                <!-- Presets Button Group -->
-                <div class="join">
-                    <button type="button" wire:click="setDatePreset('all')"
-                        class="btn btn-xs join-item {{ empty($datePreset) && empty($startDate) && empty($endDate) ? 'btn-primary' : 'btn-ghost' }}">
-                        Semua
-                    </button>
-                    <button type="button" wire:click="setDatePreset('today')"
-                        class="btn btn-xs join-item {{ $datePreset === 'today' ? 'btn-primary' : 'btn-ghost' }}">
-                        Hari Ini
-                    </button>
-                    <button type="button" wire:click="setDatePreset('this_week')"
-                        class="btn btn-xs join-item {{ $datePreset === 'this_week' ? 'btn-primary' : 'btn-ghost' }}">
-                        Minggu Ini
-                    </button>
-                    <button type="button" wire:click="setDatePreset('this_month')"
-                        class="btn btn-xs join-item {{ $datePreset === 'this_month' ? 'btn-primary' : 'btn-ghost' }}">
-                        Bulan Ini
-                    </button>
+                <!-- Presets Button Group (Scrollable on small mobile) -->
+                <div class="overflow-x-auto pb-1 sm:pb-0 scrollbar-none w-full sm:w-auto">
+                    <div class="join inline-flex min-w-max">
+                        <button type="button" wire:click="setDatePreset('all')"
+                            class="btn btn-xs join-item {{ empty($datePreset) && empty($startDate) && empty($endDate) ? 'btn-primary' : 'btn-ghost' }}">
+                            Semua
+                        </button>
+                        <button type="button" wire:click="setDatePreset('today')"
+                            class="btn btn-xs join-item {{ $datePreset === 'today' ? 'btn-primary' : 'btn-ghost' }}">
+                            Hari Ini
+                        </button>
+                        <button type="button" wire:click="setDatePreset('this_week')"
+                            class="btn btn-xs join-item {{ $datePreset === 'this_week' ? 'btn-primary' : 'btn-ghost' }}">
+                            Minggu Ini
+                        </button>
+                        <button type="button" wire:click="setDatePreset('this_month')"
+                            class="btn btn-xs join-item {{ $datePreset === 'this_month' ? 'btn-primary' : 'btn-ghost' }}">
+                            Bulan Ini
+                        </button>
+                    </div>
                 </div>
 
                 <div class="h-4 w-[1px] bg-base-content/10 hidden sm:block"></div>
 
                 <!-- Custom Range Date Inputs -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="flex items-center gap-1.5 flex-1 sm:flex-initial">
                         <span class="text-xs opacity-60 font-medium">Dari:</span>
                         <input type="date" wire:model.live="startDate"
-                            class="input input-bordered input-xs h-8 text-xs rounded-lg" />
+                            class="input input-bordered input-xs h-8 text-xs rounded-lg w-full sm:w-auto" />
                     </div>
                     <span class="text-xs opacity-40">-</span>
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5 flex-1 sm:flex-initial">
                         <span class="text-xs opacity-60 font-medium">Sampai:</span>
                         <input type="date" wire:model.live="endDate"
-                            class="input input-bordered input-xs h-8 text-xs rounded-lg" />
+                            class="input input-bordered input-xs h-8 text-xs rounded-lg w-full sm:w-auto" />
                     </div>
                 </div>
             </div>
 
             <!-- Right: Priority Filter & Reset Button -->
-            <div class="flex items-center gap-2 self-end lg:self-auto">
-                <select wire:model.live="priorityFilter" class="select select-bordered select-xs h-8 text-xs rounded-lg">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                <select wire:model.live="priorityFilter" class="select select-bordered select-xs h-8 text-xs rounded-lg flex-1 sm:flex-initial">
                     <option value="">Semua Prioritas</option>
                     <option value="critical">🔴 Critical</option>
                     <option value="high">🟠 High</option>
@@ -106,7 +110,7 @@
                 </select>
 
                 @if($search || $statusFilter || $categoryFilter || $departmentFilter || $priorityFilter || $startDate || $endDate || $datePreset)
-                    <button type="button" wire:click="resetFilters" class="btn btn-ghost btn-xs h-8 text-error gap-1 rounded-lg" title="Reset Semua Filter">
+                    <button type="button" wire:click="resetFilters" class="btn btn-ghost btn-xs h-8 text-error gap-1 rounded-lg flex-shrink-0" title="Reset Semua Filter">
                         <x-mary-icon name="o-x-mark" class="w-3.5 h-3.5" />
                         <span>Reset</span>
                     </button>
@@ -118,15 +122,15 @@
     <!-- Worklog Table Card -->
     <div class="bg-base-100 rounded-2xl shadow-md border border-base-content/5 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="table table-md w-full">
+            <table class="table table-sm sm:table-md w-full">
                 <thead class="bg-base-200/50">
                     <tr>
-                        <th>No. Tiket & Tanggal</th>
+                        <th class="whitespace-nowrap">No. Tiket & Tanggal</th>
                         <th>Pekerjaan & Pelapor</th>
-                        <th>Kategori & Divisi</th>
-                        <th>Status & Prioritas</th>
-                        <th>Lampiran Foto</th>
-                        <th class="text-right">Aksi</th>
+                        <th class="whitespace-nowrap">Kategori & Divisi</th>
+                        <th class="whitespace-nowrap">Status & Prioritas</th>
+                        <th class="whitespace-nowrap">Lampiran Foto</th>
+                        <th class="text-right whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -258,20 +262,20 @@
     <!-- ============================================== -->
     <!-- MODAL 1: POP-UP IMAGE PREVIEW                  -->
     <!-- ============================================== -->
-    <x-mary-modal wire:model="showImageModal" class="backdrop-blur-sm" box-class="max-w-4xl p-6">
+    <x-mary-modal wire:model="showImageModal" class="backdrop-blur-sm" box-class="max-w-4xl p-3 sm:p-5 w-full max-h-[92vh] overflow-y-auto">
         <div class="flex items-center justify-between pb-3 border-b border-base-content/10 mb-4">
             <div class="flex items-center gap-2">
-                <x-mary-icon name="o-photo" class="w-6 h-6 text-primary" />
+                <x-mary-icon name="o-photo" class="w-6 h-6 text-primary flex-shrink-0" />
                 <div>
-                    <h3 class="font-bold text-lg leading-none">{{ $previewImage['title'] }}</h3>
-                    <div class="text-xs opacity-60 mt-1">Tipe Bukti: <span class="badge badge-outline badge-xs uppercase font-bold">{{ $previewImage['type'] }}</span></div>
+                    <h3 class="font-bold text-base sm:text-lg leading-tight">{{ $previewImage['title'] }}</h3>
+                    <div class="text-xs opacity-60 mt-0.5">Tipe Bukti: <span class="badge badge-outline badge-xs uppercase font-bold">{{ $previewImage['type'] }}</span></div>
                 </div>
             </div>
             
         </div>
 
         @if($previewImage['url'])
-            <div class="relative bg-base-300 rounded-xl p-2 flex items-center justify-center overflow-hidden min-h-[300px] max-h-[70vh]">
+            <div class="relative bg-base-300 rounded-xl p-2 flex items-center justify-center overflow-hidden min-h-[220px] max-h-[70vh]">
                 <img src="{{ $previewImage['url'] }}" 
                      alt="Preview Foto" 
                      class="max-h-[65vh] w-auto max-w-full object-contain rounded-lg shadow-xl" />
@@ -285,12 +289,12 @@
             </div>
         @endif
 
-        <div class="mt-6 flex items-center justify-between gap-3 pt-3 border-t border-base-content/10">
-            <a href="{{ $previewImage['url'] }}" target="_blank" class="btn btn-outline btn-sm gap-2">
+        <div class="mt-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-2 pt-3 border-t border-base-content/10">
+            <a href="{{ $previewImage['url'] }}" target="_blank" class="btn btn-outline btn-sm gap-2 w-full sm:w-auto">
                 <x-mary-icon name="o-arrow-top-right-on-square" class="w-4 h-4" />
                 Buka Gambar di Tab Baru
             </a>
-            <button wire:click="$set('showImageModal', false)" class="btn btn-sm btn-ghost">
+            <button wire:click="$set('showImageModal', false)" class="btn btn-sm btn-ghost w-full sm:w-auto">
                 Tutup
             </button>
         </div>
@@ -299,20 +303,33 @@
     <!-- ============================================== -->
     <!-- MODAL 2: FORM CREATE / EDIT WORKLOG            -->
     <!-- ============================================== -->
-    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-3xl p-6">
-        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 mb-4">
-            <h3 class="font-bold text-lg flex items-center gap-2">
-                <x-mary-icon name="o-document-text" class="text-primary" />
-                {{ $workLogId ? 'Edit Worklog Tiket' : 'Catat Pekerjaan IT Baru' }}
+    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-3xl p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 mb-4 gap-2">
+            <h3 class="font-bold text-base sm:text-lg flex items-center gap-2 truncate">
+                <x-mary-icon name="o-document-text" class="text-primary flex-shrink-0" />
+                <span class="truncate">{{ $workLogId ? 'Edit Worklog Tiket' : 'Catat Pekerjaan IT Baru' }}</span>
             </h3>
-            <span class="badge badge-primary badge-outline font-mono font-bold">{{ $ticket_number }}</span>
+            <span class="badge badge-primary badge-outline font-mono font-bold text-xs flex-shrink-0">{{ $ticket_number }}</span>
         </div>
 
         <form wire:submit="save" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2">
                     <label class="label text-xs font-bold uppercase tracking-wider opacity-70">Judul Pekerjaan / Permasalahan *</label>
-                    <x-mary-input wire:model="title" placeholder="Contoh: Perbaikan PC kasir mati total, Penggantian kabel CCTV..." />
+                    <x-mary-input wire:model.live.debounce.300ms="title" placeholder="Contoh: Perbaikan PC kasir mati total, Maintenance PC Lama Gbaku..." />
+                    @if($detectedDevSummary)
+                        <div class="mt-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400">
+                            <div class="flex items-center gap-2">
+                                <x-mary-icon name="o-check-badge" class="w-4 h-4 flex-shrink-0 text-emerald-500" />
+                                <span>
+                                    Terhubung Otomatis ke PC Maintenance: <strong>{{ $detectedDevSummary }}</strong>
+                                </span>
+                            </div>
+                            <span class="badge badge-sm {{ $detectedDevLocation === 'pabrik' ? 'badge-warning' : 'badge-info' }} font-semibold text-[10px] uppercase">
+                                Unit {{ $detectedDevLocation === 'pabrik' ? 'Pabrik' : 'Kantor' }}
+                            </span>
+                        </div>
+                    @endif
                 </div>
 
                 <div>
@@ -337,12 +354,12 @@
 
                 <div>
                     <label class="label text-xs font-bold uppercase tracking-wider opacity-70">Nama Pemohon / Pelapor</label>
-                    <x-mary-input wire:model="requester_name" placeholder="Nama staf / pemohon" />
+                    <x-mary-input wire:model.live.debounce.300ms="requester_name" placeholder="Nama staf / pemohon" />
                 </div>
 
                 <div>
                     <label class="label text-xs font-bold uppercase tracking-wider opacity-70">ID Perangkat (Device Identifier)</label>
-                    <x-mary-input wire:model="device_identifier" placeholder="Contoh: PC-FA-01, UPS-SRV-02..." />
+                    <x-mary-input wire:model.live.debounce.300ms="device_identifier" placeholder="Contoh: SC, RMWH, PC-FA-01..." />
                 </div>
 
                 <div>
@@ -516,9 +533,9 @@
                 </details>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-4 border-t border-base-content/10">
-                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm">Batal</button>
-                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md" wire:loading.attr="disabled">
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-4 border-t border-base-content/10">
+                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
+                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto" wire:loading.attr="disabled">
                     <span wire:loading class="loading loading-spinner loading-xs"></span>
                     Simpan Worklog
                 </button>
@@ -529,7 +546,7 @@
     <!-- ============================================== -->
     <!-- MODAL 3: DETAIL TIKET LENGKAP                  -->
     <!-- ============================================== -->
-    <x-mary-modal wire:model="showDetailModal" class="backdrop-blur-sm" box-class="max-w-3xl p-6">
+    <x-mary-modal wire:model="showDetailModal" class="backdrop-blur-sm" box-class="max-w-3xl p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
         @if($detailLog)
             <div class="flex items-center justify-between pb-3 border-b border-base-content/10 mb-4">
                 <div>
@@ -537,7 +554,7 @@
                         <span class="badge badge-primary font-mono font-bold">{{ $detailLog->ticket_number }}</span>
                         <span class="badge badge-outline uppercase text-xs">{{ $detailLog->task_type }}</span>
                     </div>
-                    <h3 class="font-extrabold text-xl mt-1">{{ $detailLog->title }}</h3>
+                    <h3 class="font-extrabold text-lg sm:text-xl mt-1">{{ $detailLog->title }}</h3>
                 </div>
                 
             </div>
@@ -618,12 +635,12 @@
                 @endif
             </div>
 
-            <div class="mt-6 flex items-center justify-between pt-3 border-t border-base-content/10">
-                <button wire:click="openEditModal({{ $detailLog->id }})" class="btn btn-warning btn-sm gap-2">
+            <div class="mt-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-base-content/10">
+                <button wire:click="$set('showDetailModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Tutup</button>
+                <button wire:click="openEditModal({{ $detailLog->id }})" class="btn btn-warning btn-sm gap-2 w-full sm:w-auto">
                     <x-mary-icon name="o-pencil-square" class="w-4 h-4" />
                     Edit Worklog
                 </button>
-                <button wire:click="$set('showDetailModal', false)" class="btn btn-ghost btn-sm">Tutup</button>
             </div>
         @endif
     </x-mary-modal>

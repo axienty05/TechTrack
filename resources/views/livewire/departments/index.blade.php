@@ -1,10 +1,10 @@
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Master Departemen / Divisi</h1>
-            <p class="text-sm opacity-60">Kelola daftar divisi perusahaan, lokasi lantai, dan pemetaan pemohon tiket IT</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Master Departemen / Divisi</h1>
+            <p class="text-xs sm:text-sm opacity-60">Kelola daftar divisi perusahaan, lokasi lantai, dan pemetaan pemohon tiket IT</p>
         </div>
-        <x-mary-button label="Tambah Departemen" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg" />
+        <x-mary-button label="Tambah Departemen" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg w-full sm:w-auto" />
     </div>
 
     <div class="bg-base-100 p-4 rounded-2xl shadow-md border border-base-content/5 flex flex-wrap gap-4 items-center justify-between">
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Modal Form Departemen -->
-    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-md p-6">
+    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-md p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
         <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
             <x-mary-icon name="o-building-office" class="text-primary" />
             {{ $departmentId ? 'Edit Departemen' : 'Tambah Departemen Baru' }}
@@ -83,9 +83,9 @@
                 <label class="label text-xs font-bold uppercase opacity-70">Lokasi / Lantai</label>
                 <x-mary-input wire:model="floor_location" placeholder="Contoh: Lantai 2, Gedung Barat" />
             </div>
-            <div class="flex items-center justify-end gap-2 pt-4 border-t border-base-content/10">
-                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm">Batal</button>
-                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md">Simpan</button>
+            <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-4 border-t border-base-content/10">
+                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
+                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto">Simpan</button>
             </div>
         </form>
     </x-mary-modal>

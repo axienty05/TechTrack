@@ -9,30 +9,35 @@
 <body class="min-h-screen bg-base-200 font-sans antialiased">
     <x-mary-toast />
 
-    <x-mary-nav sticky class="bg-base-100 shadow-md">
+    <x-mary-nav sticky full-width class="bg-base-100 shadow-md">
         <x-slot:brand>
-            <div class="flex items-center gap-2 font-bold text-xl text-primary">
-                <x-mary-icon name="o-cpu-chip" class="w-7 h-7 text-primary" />
-                <span>TechTrack</span>
-            </div>
+            {{-- Mobile Drawer Toggle Button --}}
+            <label for="main-drawer" class="btn btn-ghost btn-circle btn-sm lg:hidden mr-1 text-base-content" aria-label="Buka Menu" title="Menu">
+                <x-mary-icon name="o-bars-3" class="w-6 h-6" />
+            </label>
+
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 font-bold text-lg sm:text-xl text-primary transition-opacity hover:opacity-80">
+                <x-mary-icon name="o-cpu-chip" class="w-6 h-6 sm:w-7 sm:h-7 text-primary flex-shrink-0" />
+                <span class="tracking-tight">TechTrack</span>
+            </a>
         </x-slot:brand>
-        <x-slot:actions>
+        <x-slot:actions class="flex items-center gap-1.5 sm:gap-3">
             <x-mary-theme-toggle class="btn btn-circle btn-ghost btn-sm" />
             <div class="dropdown dropdown-end">
                 <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
                     @if(auth()->user()->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists(auth()->user()->avatar))
-                        <div class="rounded-full overflow-hidden shadow-inner border border-base-content/10" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover" style="width: 40px; height: 40px; object-fit: cover;" />
+                        <div class="rounded-full overflow-hidden shadow-inner border border-base-content/10" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;">
+                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover" style="width: 36px; height: 36px; object-fit: cover;" />
                         </div>
                     @else
-                        <div class="bg-neutral text-neutral-content rounded-full flex items-center justify-center text-center font-bold text-sm leading-none shadow-inner select-none" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
+                        <div class="bg-neutral text-neutral-content rounded-full flex items-center justify-center text-center font-bold text-xs sm:text-sm leading-none shadow-inner select-none" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;">
                             <span class="inline-flex items-center justify-center text-center w-full h-full select-none">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</span>
                         </div>
                     @endif
                 </div>
-                <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-56">
+                <ul tabindex="0" class="mt-3 z-[50] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-56 border border-base-content/10">
                     <li class="menu-title text-xs opacity-60">
-                        <div class="font-bold text-sm text-base-content">{{ auth()->user()->name ?? 'User' }}</div>
+                        <div class="font-bold text-sm text-base-content truncate">{{ auth()->user()->name ?? 'User' }}</div>
                         <span class="badge badge-primary badge-xs uppercase font-semibold">{{ auth()->user()->role ?? 'USER' }}</span>
                     </li>
                     <li class="border-t border-base-content/10 mt-1 pt-1">
@@ -55,8 +60,8 @@
         </x-slot:actions>
     </x-mary-nav>
 
-    <x-mary-main full-width>
-        <x-slot:sidebar drawer="main-drawer" collapsible class="bg-base-100 shadow-md">
+    <x-mary-main full-width with-nav>
+        <x-slot:sidebar drawer="main-drawer" collapsible class="bg-base-100 shadow-md w-64">
             <x-mary-menu activate-by-route>
                 <x-mary-menu-item title="Dashboard" icon="o-home" route="dashboard" />
                 <x-mary-menu-item title="Work Logs" icon="o-document-text" route="work-logs" />
@@ -73,7 +78,7 @@
             </x-mary-menu>
         </x-slot:sidebar>
 
-        <x-slot:content>
+        <x-slot:content class="p-3 sm:p-5 lg:p-8 max-w-7xl mx-auto w-full">
             {{ $slot }}
         </x-slot:content>
     </x-mary-main>

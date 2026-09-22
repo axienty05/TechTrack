@@ -1,13 +1,15 @@
-<div class="space-y-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div class="space-y-4 sm:space-y-6">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Jadwal Pemeliharaan Rutin</h1>
-            <p class="text-sm opacity-60">Daftar agenda pemeliharaan preventif (maintenance berkala) infrastruktur IT</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Jadwal Pemeliharaan Rutin</h1>
+            <p class="text-xs sm:text-sm opacity-60">Daftar agenda pemeliharaan preventif (maintenance berkala) infrastruktur IT</p>
         </div>
-        <x-mary-button label="Tambah Jadwal Rutin" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg" />
+        <div class="w-full sm:w-auto">
+            <x-mary-button label="Tambah Jadwal Rutin" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg w-full sm:w-auto" />
+        </div>
     </div>
 
-    <div class="bg-base-100 p-4 rounded-2xl shadow-md border border-base-content/5 flex flex-wrap gap-4 items-center justify-between">
+    <div class="bg-base-100 p-3 sm:p-4 rounded-2xl shadow-md border border-base-content/5 flex flex-wrap gap-4 items-center justify-between">
         <div class="w-full sm:w-72">
             <x-mary-input wire:model.live.debounce.300ms="search" placeholder="Cari judul jadwal..." icon="o-magnifying-glass" clearable />
         </div>
@@ -15,15 +17,15 @@
 
     <div class="bg-base-100 rounded-2xl shadow-md border border-base-content/5 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="table table-md w-full">
+            <table class="table table-sm sm:table-md w-full">
                 <thead class="bg-base-200/50">
                     <tr>
-                        <th>Nama Agenda / Tugas</th>
-                        <th>Kategori</th>
-                        <th>Frekuensi</th>
-                        <th>Target Hari / Waktu</th>
-                        <th>Status Aktif</th>
-                        <th class="text-right">Aksi</th>
+                        <th class="whitespace-nowrap">Nama Agenda / Tugas</th>
+                        <th class="whitespace-nowrap">Kategori</th>
+                        <th class="whitespace-nowrap">Frekuensi</th>
+                        <th class="whitespace-nowrap">Target Hari / Waktu</th>
+                        <th class="whitespace-nowrap">Status Aktif</th>
+                        <th class="text-right whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,14 +44,14 @@
                                 <span class="badge badge-outline badge-sm uppercase font-bold text-xs">{{ $item->frequency }}</span>
                             </td>
                             <td>
-                                <span class="text-xs opacity-70">{{ $item->target_day ?: 'Sesuai Jadwal' }}</span>
+                                <span class="text-xs opacity-70 whitespace-nowrap">{{ $item->target_day ?: 'Sesuai Jadwal' }}</span>
                             </td>
                             <td>
                                 <button wire:click="toggleActive({{ $item->id }})" class="btn btn-xs {{ $item->is_active ? 'btn-success' : 'btn-ghost opacity-50' }}">
                                     {{ $item->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </button>
                             </td>
-                            <td class="text-right">
+                            <td class="text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-1">
                                     <button wire:click="openEditModal({{ $item->id }})" class="btn btn-ghost btn-xs btn-square" title="Edit">
                                         <x-mary-icon name="o-pencil-square" class="w-4 h-4 text-warning" />
@@ -62,7 +64,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-8 opacity-50">Tidak ada jadwal rutin ditemukan</td>
+                            <td colspan="6" class="text-center py-8 opacity-50 text-sm">Tidak ada jadwal rutin ditemukan</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -74,10 +76,10 @@
     </div>
 
     <!-- Modal Form Jadwal Rutin -->
-    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-md p-6">
-        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-            <x-mary-icon name="o-calendar" class="text-primary" />
-            {{ $scheduleId ? 'Edit Jadwal Rutin' : 'Tambah Jadwal Rutin Baru' }}
+    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-md p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
+        <h3 class="font-bold text-base sm:text-lg mb-4 flex items-center gap-2">
+            <x-mary-icon name="o-calendar" class="text-primary w-5 h-5 flex-shrink-0" />
+            <span>{{ $scheduleId ? 'Edit Jadwal Rutin' : 'Tambah Jadwal Rutin Baru' }}</span>
         </h3>
         <form wire:submit="save" class="space-y-4">
             <div>
@@ -86,17 +88,17 @@
             </div>
             <div>
                 <label class="label text-xs font-bold uppercase opacity-70">Kategori IT *</label>
-                <select wire:model="category_id" class="select select-bordered w-full">
+                <select wire:model="category_id" class="select select-bordered w-full select-sm">
                     <option value="">-- Pilih Kategori --</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}">{{ $cat->name }} ({{ $cat->code }})</option>
                     @endforeach
                 </select>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="label text-xs font-bold uppercase opacity-70">Frekuensi *</label>
-                    <select wire:model="frequency" class="select select-bordered w-full">
+                    <select wire:model="frequency" class="select select-bordered w-full select-sm">
                         <option value="daily">Harian (Daily)</option>
                         <option value="weekly">Mingguan (Weekly)</option>
                         <option value="monthly">Bulanan (Monthly)</option>
@@ -111,7 +113,7 @@
             </div>
             <div>
                 <label class="label text-xs font-bold uppercase opacity-70">Deskripsi / Detail Pemeliharaan</label>
-                <textarea wire:model="description" rows="2" class="textarea textarea-bordered w-full" placeholder="Langkah-langkah yang harus diperiksa..."></textarea>
+                <textarea wire:model="description" rows="2" class="textarea textarea-bordered w-full text-sm" placeholder="Langkah-langkah yang harus diperiksa..."></textarea>
             </div>
             <div class="form-control">
                 <label class="label cursor-pointer justify-start gap-3">
@@ -119,9 +121,9 @@
                     <span class="label-text font-medium text-sm">Aktifkan Jadwal Ini</span>
                 </label>
             </div>
-            <div class="flex items-center justify-end gap-2 pt-4 border-t border-base-content/10">
-                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm">Batal</button>
-                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md">Simpan</button>
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-4 border-t border-base-content/10">
+                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
+                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto">Simpan</button>
             </div>
         </form>
     </x-mary-modal>

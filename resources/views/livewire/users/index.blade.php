@@ -1,10 +1,10 @@
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Manajemen Pengguna (IT Staff)</h1>
-            <p class="text-sm opacity-60">Kelola akun teknisi, foto profil, hak akses (role), dan kredensial sistem</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Manajemen Pengguna (IT Staff)</h1>
+            <p class="text-xs sm:text-sm opacity-60">Kelola akun teknisi, foto profil, hak akses (role), dan kredensial sistem</p>
         </div>
-        <x-mary-button label="Tambah Pengguna" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg" />
+        <x-mary-button label="Tambah Pengguna" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg w-full sm:w-auto" />
     </div>
 
     <div class="bg-base-100 p-4 rounded-2xl shadow-md border border-base-content/5 flex flex-wrap gap-4 items-center justify-between">
@@ -95,14 +95,14 @@
     </div>
 
     <!-- Modal Form User -->
-    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-md p-6">
+    <x-mary-modal wire:model="showModal" class="backdrop-blur-sm" box-class="max-w-md p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
         <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
             <x-mary-icon name="o-user" class="text-primary" />
             {{ $userId ? 'Edit Pengguna' : 'Tambah Pengguna Baru' }}
         </h3>
         <form wire:submit="save" class="space-y-4">
             <!-- Foto Profil Input & Preview -->
-            <div class="flex items-center gap-4 p-3 bg-base-200/60 rounded-xl border border-base-content/10">
+            <div class="flex flex-col sm:flex-row items-center gap-4 p-3 bg-base-200/60 rounded-xl border border-base-content/10">
                 <div class="flex-shrink-0">
                     @if($avatar)
                         <div class="rounded-full overflow-hidden shadow border-2 border-primary bg-base-200" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
@@ -118,11 +118,11 @@
                         </div>
                     @endif
                 </div>
-                <div class="flex-1 space-y-1.5">
+                <div class="flex-1 w-full space-y-1.5 text-center sm:text-left">
                     <label class="font-bold text-xs uppercase opacity-70 block">Foto Profil (Avatar)</label>
                     <input type="file" wire:model="avatar" accept="image/*" class="file-input file-input-bordered file-input-xs w-full" />
                     @if($currentAvatar)
-                        <button type="button" wire:click="deleteAvatar" wire:confirm="Hapus foto profil ini?" class="text-xs text-error hover:underline flex items-center gap-1">
+                        <button type="button" wire:click="deleteAvatar" wire:confirm="Hapus foto profil ini?" class="text-xs text-error hover:underline flex items-center justify-center sm:justify-start gap-1 mx-auto sm:mx-0">
                             <x-mary-icon name="o-trash" class="w-3 h-3" /> Hapus Foto Saat Ini
                         </button>
                     @endif
@@ -133,7 +133,7 @@
                 <label class="label text-xs font-bold uppercase opacity-70">Nama Lengkap *</label>
                 <x-mary-input wire:model="name" placeholder="Nama Lengkap Teknisi" />
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="label text-xs font-bold uppercase opacity-70">Username *</label>
                     <x-mary-input wire:model="username" placeholder="username" />
@@ -167,9 +167,9 @@
                     <span class="label-text font-medium text-sm">Akun Aktif</span>
                 </label>
             </div>
-            <div class="flex items-center justify-end gap-2 pt-4 border-t border-base-content/10">
-                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm">Batal</button>
-                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md" wire:loading.attr="disabled">
+            <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-4 border-t border-base-content/10">
+                <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
+                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto" wire:loading.attr="disabled">
                     <span wire:loading class="loading loading-spinner loading-xs"></span>
                     Simpan
                 </button>

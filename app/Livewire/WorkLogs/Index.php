@@ -60,6 +60,11 @@ class Index extends Component
     public string $description = '';
     public string $action_taken = '';
 
+    // Auto-detected PC Maintenance device info
+    public ?int $detectedDeviceId = null;
+    public ?string $detectedDevSummary = null;
+    public ?string $detectedDevLocation = null;
+
     // Attachments
     public $beforePhoto = null;
     public string $beforeCaption = '';
@@ -108,7 +113,8 @@ class Index extends Component
             'workLogId', 'title', 'category_id', 'department_id',
             'requester_name', 'device_identifier', 'description', 'action_taken',
             'beforePhoto', 'beforeCaption', 'afterPhoto', 'afterCaption',
-            'newAttachments', 'newAttachmentCaption', 'existingAttachments'
+            'newAttachments', 'newAttachmentCaption', 'existingAttachments',
+            'detectedDeviceId', 'detectedDevSummary', 'detectedDevLocation',
         ]);
 
         $this->ticket_number = self::generateTicketNumber();
@@ -162,7 +168,174 @@ class Index extends Component
         $this->newAttachmentCaption = '';
         $this->newAttachmentType = 'error_screenshot';
 
+        $this->detectedDeviceId = null;
+        $this->detectedDevSummary = null;
+        $this->detectedDevLocation = null;
+        $this->autoDetectPcDevice();
+
         $this->showModal = true;
+    }
+
+    public function updatedTitle($value): void
+    {
+        $this->autoDetectPcDevice();
+    }
+
+    public function updatedDeviceIdentifier($value): void
+    {
+        $this->autoDetectPcDevice();
+    }
+
+    public function updatedRequesterName($value): void
+    {
+        $this->autoDetectPcDevice();
+    }
+
+    public function autoDetectPcDevice(): void
+    {
+        $device = self::findMatchingComputerDevice($this->title, $this->device_identifier, $this->requester_name);
+
+        if ($device) {
+            $this->detectedDeviceId = $device->id;
+            $this->detectedDevSummary = "{$device->comp_name} — {$device->user_name}";
+            $this->detectedDevLocation = $device->location;
+
+            // Otomatis sesuaikan tipe tugas ke preventive jika masih reaktif
+            if ($this->task_type === 'reactive') {
+                $this->task_type = 'preventive';
+            }
+            if (empty($this->device_identifier)) {
+                $this->device_identifier = $device->comp_name;
+            }
+            if (empty($this->requester_name)) {
+                $this->requester_name = $device->user_name;
+            }
+            if (empty($this->department_id) && $device->department_id) {
+                $this->department_id = $device->department_id;
+            }
+            if (empty($this->category_id)) {
+                $mtcCat = Category::where('code', 'MTC')->orWhere('code', 'PC')->first();
+                if ($mtcCat) {
+                    $this->category_id = $mtcCat->id;
+                }
+            }
+        } else {
+            $this->detectedDeviceId = null;
+            $this->detectedDevSummary = null;
+            $this->detectedDevLocation = null;
+        }
+    }
+
+    public static function findMatchingComputerDevice(?string $title, ?string $deviceIdentifier = null, ?string $requesterName = null): ?ComputerDevice
+    {
+        $combined = trim(($deviceIdentifier ?? '') . ' ' . ($requesterName ?? '') . ' ' . ($title ?? ''));
+        if (empty($combined)) {
+            return null;
+        }
+
+        // 1. Direct match on comp_name or user_name with deviceIdentifier
+        if (!empty($deviceIdentifier)) {
+            $cleanId = strtolower(trim($deviceIdentifier));
+            $dev = ComputerDevice::whereRaw('LOWER(comp_name) = ?', [$cleanId])->first()
+                ?? ComputerDevice::whereRaw('LOWER(user_name) = ?', [$cleanId])->first();
+            if ($dev) {
+                return $dev;
+            }
+
+            $namePart = strtolower(trim(preg_replace('/^(pc[-\s]?|laptop[-\s]?|komp[-\s]?)/i', '', $cleanId)));
+            $dev = ComputerDevice::whereRaw('LOWER(comp_name) = ?', [$namePart])->first()
+                ?? ComputerDevice::whereRaw('LOWER(user_name) = ?', [$namePart])->first();
+            if ($dev) {
+                return $dev;
+            }
+        }
+
+        // 2. Direct match on requester_name
+        if (!empty($requesterName)) {
+            $cleanReq = strtolower(trim($requesterName));
+            $dev = ComputerDevice::whereRaw('LOWER(user_name) = ?', [$cleanReq])->first();
+            if ($dev) {
+                return $dev;
+            }
+        }
+
+        // 3. Smart multi-word matching across all devices
+        $allDevices = ComputerDevice::with('department')->get();
+
+        // Clean search text by removing common boilerplate words
+        $cleanText = strtolower($combined);
+        $cleanText = preg_replace('/\b(maintenance|perawatan|servis|service|komputer|computer|desktop|laptop|rutin|bulanan|perbaikan|tiket|worklog|cek|pengecekan)\b/i', ' ', $cleanText);
+
+        preg_match_all('/[a-z0-9]+/i', $cleanText, $matches);
+        $searchWords = array_values(array_filter($matches[0] ?? [], fn($w) => strlen($w) >= 2));
+
+        if (empty($searchWords)) {
+            return null;
+        }
+
+        $bestScore = 0;
+        $bestDevice = null;
+
+        foreach ($allDevices as $device) {
+            $score = 0;
+            $dComp = strtolower($device->comp_name);
+            $dUser = strtolower($device->user_name);
+
+            // Exact substring matches in combined text
+            if (strlen($dComp) >= 2 && str_contains(strtolower($combined), $dComp)) {
+                $score += 25;
+            }
+            if (strlen($dUser) >= 3 && str_contains(strtolower($combined), $dUser)) {
+                $score += 35;
+            }
+
+            // Word-level matching
+            $matchedWordsCount = 0;
+            foreach ($searchWords as $w) {
+                if ($w === 'pc') continue;
+
+                $matchedInThisDevice = false;
+                if (str_contains($dUser, $w)) {
+                    $score += 15;
+                    $matchedInThisDevice = true;
+                }
+                if (str_contains($dComp, $w)) {
+                    $score += 15;
+                    $matchedInThisDevice = true;
+                }
+                if ($matchedInThisDevice) {
+                    $matchedWordsCount++;
+                }
+            }
+
+            // Bonus for multiple word matches
+            if ($matchedWordsCount > 1) {
+                $score += ($matchedWordsCount * 10);
+            }
+
+            // Disambiguation for "lama" vs "baru" (e.g. Gbaku Lama vs Gbaku Baru)
+            if (in_array('lama', $searchWords) && str_contains($dUser, 'lama')) {
+                $score += 25;
+            }
+            if (in_array('lama', $searchWords) && !str_contains($dUser, 'lama') && !str_contains($dComp, 'lama')) {
+                $score -= 25;
+            }
+            if (in_array('baru', $searchWords) && str_contains($dUser, 'lama')) {
+                $score -= 25;
+            }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestDevice = $device;
+            }
+        }
+
+        // Return if sufficient confidence threshold reached
+        if ($bestScore >= 20) {
+            return $bestDevice;
+        }
+
+        return null;
     }
 
     public function openDetailModal(int $id)
@@ -290,21 +463,28 @@ class Index extends Component
 
         // ─────────────────────────────────────────────────────────────
         // AUTO-LINK ke PC Maintenance
-        // Jika task_type = preventive DAN device_identifier cocok dengan
-        // salah satu Comp Name di tabel computer_devices, maka otomatis
-        // buat / update record pc_maintenance_records.
+        // Mendeteksi otomatis jika task_type = preventive ATAU
+        // judul / deskripsi berkaitan dengan maintenance/perawatan PC
         // ─────────────────────────────────────────────────────────────
-        if ($this->task_type === 'preventive' && !empty($this->device_identifier)) {
-            $cleanId  = strtolower(trim($this->device_identifier));
-            $namePart = preg_replace('/^(pc[-\s]?|laptop[-\s]?|komp[-\s]?)/i', '', trim($this->device_identifier));
-            $cleanName = strtolower(trim($namePart));
+        $isMtc = ($this->task_type === 'preventive')
+            || preg_match('/\b(maintenance|perawatan|servis|service|mtc)\b/i', $this->title . ' ' . $this->description);
 
-            $device = ComputerDevice::whereRaw('LOWER(comp_name) = ?', [$cleanId])->first()
-                ?? ComputerDevice::whereRaw('LOWER(comp_name) LIKE ?', ['%' . $cleanId . '%'])->first()
-                ?? ComputerDevice::whereRaw('LOWER(user_name) = ?', [$cleanName])->first()
-                ?? ComputerDevice::whereRaw('LOWER(user_name) LIKE ?', ['%' . $cleanName . '%'])->first();
+        if ($isMtc) {
+            $device = self::findMatchingComputerDevice($this->title, $this->device_identifier, $this->requester_name);
 
             if ($device) {
+                // Pastikan task_type tercatat sebagai preventive
+                if ($log->task_type !== 'preventive') {
+                    $log->update(['task_type' => 'preventive']);
+                }
+                // Jika device_identifier masih kosong di log, perbarui dengan comp_name
+                if (empty($log->device_identifier)) {
+                    $log->update(['device_identifier' => $device->comp_name]);
+                }
+                if (empty($log->department_id) && $device->department_id) {
+                    $log->update(['department_id' => $device->department_id]);
+                }
+
                 $period = $log->started_at
                     ? \Carbon\Carbon::parse($log->started_at)->format('Y-m')
                     : date('Y-m');
@@ -312,18 +492,18 @@ class Index extends Component
                 PcMaintenanceRecord::updateOrCreate(
                     [
                         'computer_device_id' => $device->id,
-                        'work_log_id'        => $log->id,
+                        'period'             => $period,
                     ],
                     [
-                        'technician_id'    => auth()->id(),
-                        'maintenance_date' => $log->started_at
+                        'work_log_id'        => $log->id,
+                        'technician_id'      => auth()->id() ?: 1,
+                        'maintenance_date'   => $log->started_at
                             ? \Carbon\Carbon::parse($log->started_at)->toDateString()
                             : now()->toDateString(),
-                        'period'           => $period,
-                        'notes'            => $log->action_taken ?: $log->description,
-                        'user_sign_name'   => $this->requester_name ?: $device->user_name,
-                        'is_user_signed'   => false,
-                        'overall_condition' => match($this->priority) {
+                        'notes'              => $log->action_taken ?: ($log->description ?: $log->title),
+                        'user_sign_name'     => $this->requester_name ?: $device->user_name,
+                        'is_user_signed'     => false,
+                        'overall_condition'  => match($this->priority) {
                             'critical' => 'critical',
                             'high'     => 'needs_attention',
                             default    => 'good',
@@ -331,9 +511,9 @@ class Index extends Component
                     ]
                 );
 
+                $locationLabel = $device->location === 'pabrik' ? 'Unit Pabrik' : 'Unit Kantor';
                 $this->success(
-                    'Work Log disimpan & otomatis tercatat di PC Maintenance untuk perangkat <strong>' .
-                    $device->comp_name . '</strong> (' . $device->user_name . ')!'
+                    "Work Log disimpan & otomatis tercatat di PC Maintenance untuk perangkat <strong>{$device->comp_name}</strong> ({$device->user_name} &bull; {$locationLabel})!"
                 );
             }
         }

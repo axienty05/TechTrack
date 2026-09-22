@@ -1,49 +1,49 @@
-<div class="space-y-6">
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<div class="space-y-4 sm:space-y-6">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
-            <p class="text-sm opacity-60">Selamat datang kembali, <span class="font-semibold text-primary">{{ auth()->user()->name }}</span>! Pantau performa IT Support hari ini.</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Dashboard Overview</h1>
+            <p class="text-xs sm:text-sm opacity-60">Selamat datang kembali, <span class="font-semibold text-primary">{{ auth()->user()->name }}</span>! Pantau performa IT Support hari ini.</p>
         </div>
-        <div class="flex gap-2">
-            <x-mary-button label="Catat Pekerjaan Baru" icon="o-plus" link="{{ route('work-logs') }}" class="btn-primary shadow-lg" />
+        <div class="w-full sm:w-auto">
+            <x-mary-button label="Catat Pekerjaan Baru" icon="o-plus" link="{{ route('work-logs') }}" class="btn-primary shadow-lg w-full sm:w-auto" />
         </div>
     </div>
 
     <!-- Stat Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <x-mary-stat 
             title="Total Tiket IT" 
             value="{{ $totalLogs }}" 
             icon="o-ticket" 
             description="Seluruh tiket terdaftar" 
-            class="bg-base-100 shadow-md border border-base-content/5 text-primary" 
+            class="bg-base-100 shadow-md border border-base-content/5 text-primary p-3 sm:p-5 rounded-2xl" 
         />
         <x-mary-stat 
             title="Sedang Dikerjakan" 
             value="{{ $inProgressLogs }}" 
             icon="o-arrow-path" 
             description="Penanganan aktif" 
-            class="bg-base-100 shadow-md border border-base-content/5 text-info" 
+            class="bg-base-100 shadow-md border border-base-content/5 text-info p-3 sm:p-5 rounded-2xl" 
         />
         <x-mary-stat 
-            title="Pending / Sparepart" 
+            title="Pending / Part" 
             value="{{ $pendingLogs }}" 
             icon="o-clock" 
             description="Menunggu part / eskalasi" 
-            class="bg-base-100 shadow-md border border-base-content/5 text-warning" 
+            class="bg-base-100 shadow-md border border-base-content/5 text-warning p-3 sm:p-5 rounded-2xl" 
         />
         <x-mary-stat 
-            title="Selesai (Completed)" 
+            title="Selesai (Done)" 
             value="{{ $completedLogs }}" 
             icon="o-check-circle" 
             description="{{ $completedToday }} selesai hari ini" 
-            class="bg-base-100 shadow-md border border-base-content/5 text-success" 
+            class="bg-base-100 shadow-md border border-base-content/5 text-success p-3 sm:p-5 rounded-2xl" 
         />
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <!-- Worklog Terbaru -->
-        <div class="lg:col-span-2 bg-base-100 p-6 rounded-2xl shadow-md border border-base-content/5">
+        <div class="lg:col-span-2 bg-base-100 p-4 sm:p-6 rounded-2xl shadow-md border border-base-content/5">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold flex items-center gap-2">
                     <x-mary-icon name="o-document-text" class="text-primary w-5 h-5" />
