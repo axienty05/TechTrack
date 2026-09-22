@@ -10,12 +10,14 @@ use App\Livewire\Categories\Index as CategoriesIndex;
 use App\Livewire\Users\Index as UsersIndex;
 use App\Livewire\Profile\Edit as ProfileEdit;
 use App\Livewire\PcMaintenance\Index as PcMaintenanceIndex;
+use App\Http\Controllers\WorkLogPrintController;
 
 Route::get('/login', Login::class)->name('login');
 
 Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/work-logs', WorkLogsIndex::class)->name('work-logs');
+    Route::get('/work-logs/print', [WorkLogPrintController::class, 'print'])->name('work-logs.print');
     Route::get('/routine-schedules', RoutineSchedulesIndex::class)->name('routine-schedules');
     Route::get('/pc-maintenance', PcMaintenanceIndex::class)->name('pc-maintenance');
     Route::get('/profile', ProfileEdit::class)->name('profile');

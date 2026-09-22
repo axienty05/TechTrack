@@ -28,6 +28,13 @@ class Index extends Component
     public string $endDate = '';
     public string $datePreset = '';
 
+    // Print Modal State
+    public bool $showPrintModal = false;
+    public string $printPeriodType = 'month'; // 'month' or 'range'
+    public string $printMonth = '';
+    public string $printStartDate = '';
+    public string $printEndDate = '';
+
     // Modals
     public bool $showModal = false;
     public bool $showDetailModal = false;
@@ -594,6 +601,114 @@ class Index extends Component
             }
             $this->resetPage();
         }
+    }
+
+    public function openPrintModal(): void
+    {
+        $this->printPeriodType = 'month';
+        $this->printMonth = date('Y-m');
+        $this->printStartDate = date('Y-m-01');
+        $this->printEndDate = date('Y-m-d');
+        $this->showPrintModal = true;
+    }
+
+    public function getPrintUrlProperty(): string
+    {
+        $params = ['type' => $this->printPeriodType];
+        if ($this->printPeriodType === 'month') {
+            $params['month'] = $this->printMonth ?: date('Y-m');
+        } else {
+            $params['start_date'] = $this->printStartDate ?: date('Y-m-01');
+            $params['end_date'] = $this->printEndDate ?: date('Y-m-d');
+        }
+        return route('work-logs.print', $params);
+    }
+
+    public function exportExcel()
+    {
+        $user = auth()->user();
+        $type = $this->printPeriodType;
+
+        if ($type === 'month') {
+            $month = $this->printMonth ?: date('Y-m');
+            $start = \Carbon\Carbon::parse($month . '-01')->startOfMonth();
+            $end = \Carbon\Carbon::parse($month . '-01')->endOfMonth();
+            $periodLabel = $start->format('Y_m');
+        } else {
+            $startDate = $this->printStartDate ?: date('Y-m-01');
+            $endDate = $this->printEndDate ?: date('Y-m-d');
+            $start = \Carbon\Carbon::parse($startDate)->startOfDay();
+            $end = \Carbon\Carbon::parse($endDate)->endOfDay();
+            $periodLabel = $start->format('Ymd') . '_' . $end->format('Ymd');
+        }
+
+        $workLogs = WorkLog::with(['department', 'category'])
+            ->where('user_id', $user->id)
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('started_at', [$start, $end])
+                  ->orWhere(function ($sub) use ($start, $end) {
+                      $sub->whereNull('started_at')
+                          ->whereBetween('created_at', [$start, $end]);
+                  });
+            })
+            ->orderBy('started_at', 'asc')
+            ->get();
+
+        $cleanName = preg_replace('/[^A-Za-z0-9_]/', '_', $user->name);
+        $filename = "WorkLog_{$cleanName}_{$periodLabel}.csv";
+
+        $headers = [
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename={$filename}",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0",
+        ];
+
+        $callback = function () use ($workLogs, $user, $periodLabel) {
+            $file = fopen('php://output', 'w');
+            // Add BOM for UTF-8 compatibility in MS Excel
+            fputs($file, "\xEF\xBB\xBF");
+
+            fputcsv($file, ["LAPORAN WORK LOG TEKNISI - PT. ANEKA COFFEE INDUSTRY"]);
+            fputcsv($file, ["Teknisi: {$user->name}", "Periode: {$periodLabel}", "Tanggal Unduh: " . now()->format('d/m/Y H:i') . " WIB"]);
+            fputcsv($file, []);
+
+            // Kolom Header (tanpa durasi)
+            fputcsv($file, ['#', 'No. Tiket', 'Perangkat', 'Tanggal & Waktu', 'Pemohon / PIC', 'Departemen', 'Kategori', 'Tipe', 'Judul Pekerjaan', 'Tindakan / Deskripsi', 'Status']);
+
+            $statusMap = [
+                'completed'         => 'Selesai',
+                'in_progress'       => 'Dalam Proses',
+                'pending'           => 'Tertunda',
+                'waiting_sparepart' => 'Menunggu Sparepart',
+                'cancelled'         => 'Dibatalkan',
+            ];
+
+            foreach ($workLogs as $index => $log) {
+                $dateStr = $log->started_at
+                    ? \Carbon\Carbon::parse($log->started_at)->format('d/m/Y H:i')
+                    : ($log->created_at ? $log->created_at->format('d/m/Y H:i') : '-');
+
+                fputcsv($file, [
+                    $index + 1,
+                    $log->ticket_number,
+                    $log->device_identifier ?: '-',
+                    $dateStr,
+                    $log->requester_name ?: '-',
+                    $log->department->name ?? ($log->department->code ?? '-'),
+                    $log->category->name ?? '-',
+                    ucfirst($log->task_type),
+                    $log->title,
+                    $log->action_taken ?: ($log->description ?: '-'),
+                    $statusMap[$log->status] ?? ucfirst($log->status),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return \Illuminate\Support\Facades\Response::stream($callback, 200, $headers);
     }
 
     public function render()

@@ -5,8 +5,12 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Manajemen Worklog IT</h1>
             <p class="text-xs sm:text-sm opacity-60">Catat, pantau, dan kelola seluruh penanganan insiden dan pemeliharaan IT</p>
         </div>
-        <div class="w-full sm:w-auto">
-            <x-mary-button label="Tambah Worklog Baru" icon="o-plus" wire:click="openCreateModal" class="btn-primary shadow-lg w-full sm:w-auto" />
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button type="button" wire:click="openPrintModal" class="btn btn-outline btn-sm gap-2 flex-1 sm:flex-initial shadow-sm">
+                <x-mary-icon name="o-printer" class="w-4 h-4 text-primary" />
+                <span>Cetak Laporan</span>
+            </button>
+            <x-mary-button label="Tambah Worklog Baru" icon="o-plus" wire:click="openCreateModal" class="btn-primary btn-sm shadow-md flex-1 sm:flex-initial" />
         </div>
     </div>
 
@@ -643,5 +647,85 @@
                 </button>
             </div>
         @endif
+    </x-mary-modal>
+
+    <!-- ======================================================= -->
+    <!-- MODAL: CETAK LAPORAN WORK LOG -->
+    <!-- ======================================================= -->
+    <x-mary-modal wire:model="showPrintModal" class="backdrop-blur-sm" box-class="max-w-md p-4 sm:p-5 w-full">
+        <div class="flex items-center gap-2.5 pb-3 mb-3 border-b border-base-content/10 pr-8">
+            <div class="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+                <x-mary-icon name="o-printer" class="w-5 h-5" />
+            </div>
+            <div>
+                <h3 class="font-bold text-base sm:text-lg leading-tight">Cetak Laporan Work Log</h3>
+                <p class="text-xs text-base-content/60 mt-0.5">Laporan aktivitas kerja: <strong>{{ auth()->user()->name }}</strong></p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            {{-- Pilihan Mode Periode (Bulan atau Rentang Tanggal) --}}
+            <div>
+                <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Pilih Mode Periode</label>
+                <div class="grid grid-cols-2 gap-2 bg-base-200/60 p-1 rounded-xl">
+                    <button type="button" wire:click="$set('printPeriodType', 'month')"
+                        class="btn btn-sm text-xs font-semibold rounded-lg {{ $printPeriodType === 'month' ? 'btn-primary shadow-xs' : 'btn-ghost' }}">
+                        <x-mary-icon name="o-calendar" class="w-4 h-4" />
+                        Per Bulan
+                    </button>
+                    <button type="button" wire:click="$set('printPeriodType', 'range')"
+                        class="btn btn-sm text-xs font-semibold rounded-lg {{ $printPeriodType === 'range' ? 'btn-primary shadow-xs' : 'btn-ghost' }}">
+                        <x-mary-icon name="o-calendar-days" class="w-4 h-4" />
+                        Rentang Tanggal
+                    </button>
+                </div>
+            </div>
+
+            {{-- Input Pemilihan Tanggal Dinamis --}}
+            @if($printPeriodType === 'month')
+                <div>
+                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Bulan & Tahun *</label>
+                    <input type="month" wire:model.live="printMonth" class="input input-bordered w-full input-sm" />
+                    <p class="text-[11px] opacity-50 mt-1">Mencetak seluruh work log Anda pada bulan yang dipilih.</p>
+                </div>
+            @else
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Dari Tanggal *</label>
+                        <input type="date" wire:model.live="printStartDate" class="input input-bordered w-full input-sm" />
+                    </div>
+                    <div>
+                        <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Sampai Tanggal *</label>
+                        <input type="date" wire:model.live="printEndDate" class="input input-bordered w-full input-sm" />
+                    </div>
+                </div>
+                <p class="text-[11px] opacity-50 mt-1">Mencetak aktivitas dari tanggal awal sampai tanggal akhir yang dipilih.</p>
+            @endif
+
+            {{-- Output Action Buttons --}}
+            <div class="pt-4 border-t border-base-content/10 space-y-2">
+                <div class="text-[11px] font-bold uppercase tracking-wider opacity-70 mb-2">Pilih Format Cetak / Unduh:</div>
+                <div class="grid grid-cols-2 gap-2">
+                    {{-- Tombol PDF --}}
+                    <a href="{{ $this->printUrl }}" target="_blank"
+                        class="btn btn-primary btn-sm gap-2 w-full shadow-md">
+                        <x-mary-icon name="o-document-text" class="w-4 h-4" />
+                        <span>Cetak / PDF</span>
+                    </a>
+
+                    {{-- Tombol Excel --}}
+                    <button type="button" wire:click="exportExcel"
+                        class="btn btn-success btn-sm gap-2 w-full shadow-md text-white">
+                        <x-mary-icon name="o-arrow-down-tray" class="w-4 h-4" />
+                        <span>Export Excel</span>
+                    </button>
+                </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" wire:click="$set('showPrintModal', false)" class="btn btn-ghost btn-xs opacity-60 hover:opacity-100">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
     </x-mary-modal>
 </div>
