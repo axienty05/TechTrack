@@ -1,4 +1,4 @@
-<div class="space-y-4 sm:space-y-5">
+﻿<div class="space-y-4 sm:space-y-5">
 
     {{-- ======================================================= --}}
     {{-- HEADER & STATS --}}
@@ -99,8 +99,8 @@
             <div>
                 <select wire:model.live="statusFilter" class="select select-bordered select-sm w-full">
                     <option value="all">Semua Status</option>
-                    <option value="completed">✅ Sudah Di-maintenance</option>
-                    <option value="pending">⏳ Belum Di-maintenance</option>
+                    <option value="completed">âœ… Sudah Di-maintenance</option>
+                    <option value="pending">â³ Belum Di-maintenance</option>
                 </select>
             </div>
             {{-- Periode --}}
@@ -120,6 +120,37 @@
     </div>
 
     {{-- ======================================================= --}}
+    {{-- BANNER: JADWAL AKTIF --}}
+    {{-- ======================================================= --}}
+    @if($activeSchedule)
+        <div class="flex items-start sm:items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-4 py-3">
+            <x-mary-icon name="o-calendar-days" class="w-5 h-5 text-primary flex-shrink-0 mt-0.5 sm:mt-0" />
+            <div class="flex-1 min-w-0">
+                <div class="font-bold text-sm text-primary">Jadwal Aktif: {{ $activeSchedule->title }}</div>
+                <div class="text-xs opacity-70 mt-0.5">
+                    Frekuensi: <span class="font-semibold">{{ $activeSchedule->frequency_label }}</span>
+                    &bull; Berlaku untuk: <span class="font-semibold">{{ $activeSchedule->pc_location_label }}</span>
+                    @if($activeSchedule->target_day)
+                        &bull; Target: <span class="font-semibold">{{ $activeSchedule->target_day }}</span>
+                    @endif
+                </div>
+            </div>
+            <a href="{{ route('routine-schedules') }}" class="btn btn-xs btn-outline btn-primary flex-shrink-0">Kelola Jadwal</a>
+        </div>
+    @else
+        <div class="flex items-center gap-3 bg-warning/10 border border-warning/20 rounded-2xl px-4 py-3">
+            <x-mary-icon name="o-exclamation-triangle" class="w-5 h-5 text-warning flex-shrink-0" />
+            <div class="flex-1 text-sm">
+                <span class="font-bold text-warning">Belum ada Routine Schedule aktif</span>
+                <span class="opacity-70"> untuk lokasi <strong>{{ ucfirst($activeTab) }}</strong>.</span>
+                Buat jadwal di menu
+                <a href="{{ route('routine-schedules') }}" class="underline text-primary font-semibold">Jadwal Rutin</a>
+                agar status due date PC bisa terpantau.
+            </div>
+        </div>
+    @endif
+
+    {{-- ======================================================= --}}
     {{-- MAIN TABLE --}}
     {{-- ======================================================= --}}
     <div class="bg-base-100 rounded-2xl shadow-md border border-base-content/5 overflow-hidden">
@@ -132,6 +163,9 @@
                         <th class="whitespace-nowrap min-w-[140px]">Comp Name</th>
                         <th>Dept</th>
                         <th>Tanggal Maintenance</th>
+                        @if($activeSchedule)
+                            <th class="whitespace-nowrap">Jadwal Berikutnya</th>
+                        @endif
                         <th>Kondisi & Notes</th>
                         <th>Ttd User</th>
                         <th class="text-right">Aksi</th>
@@ -140,10 +174,12 @@
                 <tbody>
                     @forelse($devices as $device)
                         @php
-                            $record = $device->maintenanceRecords->first();
-                            $isDone = $record !== null;
+                            $record    = $device->maintenanceRecords->first();
+                            $isDone    = $record !== null;
+                            $dueInfo   = $dueDateMap[$device->id] ?? null;
+                            $rowHighlight = ($dueInfo && $dueInfo['is_overdue']) ? 'bg-error/5' : '';
                         @endphp
-                        <tr class="hover {{ $isDone ? '' : 'opacity-80' }}">
+                        <tr class="hover {{ $rowHighlight }}">
                             <td class="text-xs opacity-50 font-mono">{{ $devices->firstItem() + $loop->index }}</td>
                             <td>
                                 <div class="font-semibold text-sm">{{ $device->user_name }}</div>
@@ -175,6 +211,27 @@
                                     </span>
                                 @endif
                             </td>
+                            @if($activeSchedule && $dueInfo)
+                                <td class="whitespace-nowrap">
+                                    @if($dueInfo['never_maintained'])
+                                        <span class="badge badge-error badge-sm gap-1">
+                                            <x-mary-icon name="o-exclamation-circle" class="w-3 h-3" />
+                                            Belum Pernah
+                                        </span>
+                                    @elseif($dueInfo['is_overdue'])
+                                        <div class="text-xs font-bold text-error">Overdue</div>
+                                        <div class="text-xs text-error/70">{{ abs($dueInfo['days_left']) }} hari lalu</div>
+                                    @elseif($dueInfo['is_today'])
+                                        <span class="badge badge-warning badge-sm gap-1 animate-pulse">
+                                            <x-mary-icon name="o-bell-alert" class="w-3 h-3" />
+                                            Hari Ini!
+                                        </span>
+                                    @else
+                                        <div class="text-xs font-semibold text-success">{{ $dueInfo['next_due']->format('d/m/Y') }}</div>
+                                        <div class="text-xs opacity-50">{{ $dueInfo['days_left'] }} hari lagi</div>
+                                    @endif
+                                </td>
+                            @endif
                             <td class="max-w-xs">
                                 @if($isDone)
                                     @php
@@ -273,7 +330,7 @@
                 <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary" />
                 {{ $maintCompName }}
             </span>
-            <span class="text-xs sm:text-sm opacity-70">— {{ $maintUserName }}</span>
+            <span class="text-xs sm:text-sm opacity-70">â€” {{ $maintUserName }}</span>
         </div>
 
         <form wire:submit="saveMaintenance" class="space-y-4">
@@ -328,9 +385,9 @@
                 <div class="sm:col-span-1">
                     <label class="label text-xs font-bold uppercase opacity-70">Kondisi PC</label>
                     <select wire:model="maintCondition" class="select select-bordered w-full select-sm">
-                        <option value="good">✅ Baik</option>
-                        <option value="needs_attention">⚠️ Perlu Perhatian</option>
-                        <option value="critical">🔴 Kritis</option>
+                        <option value="good">âœ… Baik</option>
+                        <option value="needs_attention">âš ï¸ Perlu Perhatian</option>
+                        <option value="critical">ðŸ”´ Kritis</option>
                     </select>
                 </div>
                 <div class="sm:col-span-2">
@@ -385,7 +442,7 @@
                         <x-mary-icon name="o-computer-desktop" class="w-4 h-4 text-primary flex-shrink-0" />
                         <span class="truncate">{{ $historyDevice->comp_name }}</span>
                     </div>
-                    <div class="text-xs sm:text-sm opacity-70 mt-1 truncate">{{ $historyDevice->user_name }} — {{ $historyDevice->department->name ?? '-' }}</div>
+                    <div class="text-xs sm:text-sm opacity-70 mt-1 truncate">{{ $historyDevice->user_name }} â€” {{ $historyDevice->department->name ?? '-' }}</div>
                     <span class="badge badge-sm badge-ghost capitalize mt-1">{{ $historyDevice->location }}</span>
                 </div>
             </div>

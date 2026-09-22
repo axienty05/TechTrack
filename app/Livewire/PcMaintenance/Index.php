@@ -8,8 +8,10 @@ use Livewire\WithFileUploads;
 use App\Models\ComputerDevice;
 use App\Models\PcMaintenanceRecord;
 use App\Models\Department;
+use App\Models\RoutineSchedule;
 use Mary\Traits\Toast;
 use Illuminate\Support\Facades\Response;
+use Carbon\Carbon;
 
 class Index extends Component
 {
@@ -352,7 +354,16 @@ class Index extends Component
     public function render()
     {
         $period = $this->selectedPeriod ?: date('Y-m');
-        $term = '%' . trim($this->search) . '%';
+        $term   = '%' . trim($this->search) . '%';
+
+        // Cari Routine Schedule aktif yang berlaku untuk tab lokasi ini
+        $activeSchedule = RoutineSchedule::where('is_active', true)
+            ->where(function ($q) {
+                $q->where('pc_location', $this->activeTab)
+                  ->orWhere('pc_location', 'semua');
+            })
+            ->latest('id') // ambil yang paling baru jika ada lebih dari 1
+            ->first();
 
         // Query Perangkat
         $query = ComputerDevice::with([
@@ -386,25 +397,51 @@ class Index extends Component
 
         $devices = $query->orderBy('id')->paginate(15);
 
+        // Hitung due date info per device jika ada jadwal aktif
+        $dueDateMap = [];
+        if ($activeSchedule) {
+            foreach ($devices as $device) {
+                $lastDate  = $device->latestMaintenance
+                    ? Carbon::parse($device->latestMaintenance->maintenance_date)
+                    : null;
+
+                $nextDue   = $activeSchedule->nextDueDate($lastDate);
+                $daysLeft  = (int) Carbon::today()->diffInDays($nextDue, false); // negatif = overdue
+                $isOverdue = $nextDue->isPast() && !$nextDue->isToday();
+                $isToday   = $nextDue->isToday();
+                $neverMaintained = $lastDate === null;
+
+                $dueDateMap[$device->id] = [
+                    'next_due'        => $nextDue,
+                    'days_left'       => $daysLeft,
+                    'is_overdue'      => $isOverdue,
+                    'is_today'        => $isToday,
+                    'never_maintained'=> $neverMaintained,
+                ];
+            }
+        }
+
         // Statistik Cepat
-        $totalKantor = ComputerDevice::kantor()->count();
-        $totalPabrik = ComputerDevice::pabrik()->count();
+        $totalKantor  = ComputerDevice::kantor()->count();
+        $totalPabrik  = ComputerDevice::pabrik()->count();
         $completedCurrentPeriod = PcMaintenanceRecord::where('period', $period)
             ->whereHas('computerDevice', function ($q) {
                 $q->where('location', $this->activeTab);
             })->count();
 
-        $totalActiveTab = $this->activeTab === 'kantor' ? $totalKantor : $totalPabrik;
+        $totalActiveTab  = $this->activeTab === 'kantor' ? $totalKantor : $totalPabrik;
         $progressPercent = $totalActiveTab > 0 ? round(($completedCurrentPeriod / $totalActiveTab) * 100) : 0;
 
         return view('livewire.pc-maintenance.index', [
-            'devices' => $devices,
-            'departments' => Department::orderBy('name')->get(),
-            'totalKantor' => $totalKantor,
-            'totalPabrik' => $totalPabrik,
-            'completedCurrentPeriod' => $completedCurrentPeriod,
-            'totalActiveTab' => $totalActiveTab,
-            'progressPercent' => $progressPercent,
+            'devices'               => $devices,
+            'departments'           => Department::orderBy('name')->get(),
+            'totalKantor'           => $totalKantor,
+            'totalPabrik'           => $totalPabrik,
+            'completedCurrentPeriod'=> $completedCurrentPeriod,
+            'totalActiveTab'        => $totalActiveTab,
+            'progressPercent'       => $progressPercent,
+            'activeSchedule'        => $activeSchedule,
+            'dueDateMap'            => $dueDateMap,
         ]);
     }
 }

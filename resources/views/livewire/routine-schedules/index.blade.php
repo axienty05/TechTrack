@@ -22,6 +22,7 @@
                     <tr>
                         <th class="whitespace-nowrap">Nama Agenda / Tugas</th>
                         <th class="whitespace-nowrap">Kategori</th>
+                        <th class="whitespace-nowrap">Lokasi PC</th>
                         <th class="whitespace-nowrap">Frekuensi</th>
                         <th class="whitespace-nowrap">Target Hari / Waktu</th>
                         <th class="whitespace-nowrap">Status Aktif</th>
@@ -41,7 +42,17 @@
                                 <span class="badge badge-ghost badge-sm">{{ $item->category->name ?? '-' }}</span>
                             </td>
                             <td>
-                                <span class="badge badge-outline badge-sm uppercase font-bold text-xs">{{ $item->frequency }}</span>
+                                @php
+                                    $locColor = match($item->pc_location) {
+                                        'kantor' => 'badge-info',
+                                        'pabrik' => 'badge-warning',
+                                        default  => 'badge-ghost',
+                                    };
+                                @endphp
+                                <span class="badge badge-sm {{ $locColor }} font-semibold">{{ $item->pc_location_label }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-outline badge-sm uppercase font-bold text-xs">{{ $item->frequency_label }}</span>
                             </td>
                             <td>
                                 <span class="text-xs opacity-70 whitespace-nowrap">{{ $item->target_day ?: 'Sesuai Jadwal' }}</span>
@@ -64,7 +75,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-8 opacity-50 text-sm">Tidak ada jadwal rutin ditemukan</td>
+                            <td colspan="7" class="text-center py-8 opacity-50 text-sm">Tidak ada jadwal rutin ditemukan</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -110,6 +121,15 @@
                     <label class="label text-xs font-bold uppercase opacity-70">Target Hari</label>
                     <x-mary-input wire:model="target_day" placeholder="Contoh: Setiap Jumat" />
                 </div>
+            </div>
+            <div>
+                <label class="label text-xs font-bold uppercase opacity-70">Berlaku untuk Lokasi PC *</label>
+                <select wire:model="pc_location" class="select select-bordered w-full select-sm">
+                    <option value="semua">Semua Lokasi (Kantor & Pabrik)</option>
+                    <option value="kantor">Kantor</option>
+                    <option value="pabrik">Pabrik</option>
+                </select>
+                <p class="text-xs opacity-50 mt-1">Jadwal ini akan dipakai sebagai acuan due date maintenance PC di lokasi yang dipilih.</p>
             </div>
             <div>
                 <label class="label text-xs font-bold uppercase opacity-70">Deskripsi / Detail Pemeliharaan</label>

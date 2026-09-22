@@ -22,12 +22,14 @@ class Index extends Component
     public ?int $category_id = null;
     public string $target_day = '';
     public bool $is_active = true;
+    public string $pc_location = 'semua'; // 'kantor' | 'pabrik' | 'semua'
 
     public function openCreateModal()
     {
         $this->reset(['scheduleId', 'title', 'description', 'target_day']);
         $this->frequency = 'monthly';
         $this->is_active = true;
+        $this->pc_location = 'semua';
         $firstCat = Category::first();
         $this->category_id = $firstCat ? $firstCat->id : null;
         $this->showModal = true;
@@ -43,6 +45,7 @@ class Index extends Component
         $this->category_id = $item->category_id;
         $this->target_day = $item->target_day ?? '';
         $this->is_active = (bool) $item->is_active;
+        $this->pc_location = $item->pc_location ?? 'semua';
         $this->showModal = true;
     }
 
@@ -62,12 +65,13 @@ class Index extends Component
         ]);
 
         $data = [
-            'title' => $this->title,
+            'title'       => $this->title,
             'description' => $this->description,
             'category_id' => $this->category_id,
-            'frequency' => $this->frequency,
-            'target_day' => $this->target_day,
-            'is_active' => $this->is_active,
+            'frequency'   => $this->frequency,
+            'target_day'  => $this->target_day,
+            'is_active'   => $this->is_active,
+            'pc_location' => $this->pc_location,
         ];
 
         if ($this->scheduleId) {
