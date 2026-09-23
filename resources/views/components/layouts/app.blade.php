@@ -63,18 +63,37 @@
     <x-mary-main full-width with-nav>
         <x-slot:sidebar drawer="main-drawer" collapsible class="bg-base-100 shadow-md w-64">
             <x-mary-menu activate-by-route>
+
+                {{-- Dashboard --}}
                 <x-mary-menu-item title="Dashboard" icon="o-home" route="dashboard" />
+
+                {{-- ─── OPERASIONAL & WORK LOG ─── --}}
+                <x-mary-menu-separator />
+                <li class="menu-title px-2 pt-1">
+                    <span class="text-[10px] font-bold uppercase tracking-widest opacity-50 hidden-when-collapsed">Operasional</span>
+                </li>
                 <x-mary-menu-item title="Work Logs" icon="o-document-text" route="work-logs" />
                 <x-mary-menu-item title="Routine Schedules" icon="o-calendar" route="routine-schedules" />
                 <x-mary-menu-item title="PC Maintenance" icon="o-computer-desktop" route="pc-maintenance" />
 
+                {{-- ─── INVENTARIS & ASET IT ─── --}}
+                <x-mary-menu-separator />
+                <li class="menu-title px-2 pt-1">
+                    <span class="text-[10px] font-bold uppercase tracking-widest opacity-50 hidden-when-collapsed">Inventaris</span>
+                </li>
+                <x-mary-menu-item title="Daftar Barang & Aset" icon="o-cube" route="inventory.items" />
+
+                {{-- ─── MASTER DATA (ADMIN) ─── --}}
                 @if(in_array(auth()->user()->role ?? '', ['admin', 'it_lead']))
-                    <x-mary-menu-sub title="Master Data" icon="o-cog-6-tooth">
-                        <x-mary-menu-item title="Departments" icon="o-building-office" route="departments" />
-                        <x-mary-menu-item title="Categories" icon="o-tag" route="categories" />
-                        <x-mary-menu-item title="Users" icon="o-users" route="users" />
-                    </x-mary-menu-sub>
+                    <x-mary-menu-separator />
+                    <li class="menu-title px-2 pt-1">
+                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-50 hidden-when-collapsed">Master Data</span>
+                    </li>
+                    <x-mary-menu-item title="Departments" icon="o-building-office" route="departments" />
+                    <x-mary-menu-item title="Categories" icon="o-tag" route="categories" />
+                    <x-mary-menu-item title="Users" icon="o-users" route="users" />
                 @endif
+
             </x-mary-menu>
         </x-slot:sidebar>
 

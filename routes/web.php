@@ -22,6 +22,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/pc-maintenance', PcMaintenanceIndex::class)->name('pc-maintenance');
     Route::get('/profile', ProfileEdit::class)->name('profile');
 
+    Route::get('/inventory/items', \App\Livewire\Inventory\Index::class)->name('inventory.items');
+    Route::get('/inventory/items/create', \App\Livewire\Inventory\Form::class)->name('inventory.items.create');
+    Route::get('/inventory/items/{item}/edit', \App\Livewire\Inventory\Form::class)->name('inventory.items.edit');
+
     // Master Data - hanya bisa diakses oleh admin dan it_lead
     Route::middleware('role:admin,it_lead')->group(function () {
         Route::get('/departments', DepartmentsIndex::class)->name('departments');
