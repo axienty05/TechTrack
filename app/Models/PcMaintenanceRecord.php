@@ -11,6 +11,7 @@ class PcMaintenanceRecord extends Model
     use HasFactory;
 
     protected $fillable = [
+        'm_barang_id',
         'computer_device_id',
         'technician_id',
         'maintenance_date',
@@ -29,9 +30,19 @@ class PcMaintenanceRecord extends Model
         'is_user_signed' => 'boolean',
     ];
 
+    public function barang(): BelongsTo
+    {
+        return $this->belongsTo(Barang::class, 'm_barang_id');
+    }
+
     public function computerDevice(): BelongsTo
     {
         return $this->belongsTo(ComputerDevice::class);
+    }
+
+    public function device(): BelongsTo
+    {
+        return $this->computerDevice();
     }
 
     public function technician(): BelongsTo

@@ -4,30 +4,34 @@ namespace App\Livewire\PcMaintenance;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\WithFileUploads;
-use App\Models\ComputerDevice;
+use App\Models\Barang;
+use App\Models\Pemakai;
 use App\Models\PcMaintenanceRecord;
 use App\Models\Department;
-use App\Models\RoutineSchedule;
+use App\Models\Category;
+use App\Models\WorkLog;
 use Mary\Traits\Toast;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
 
 class Index extends Component
 {
-    use WithPagination, WithFileUploads, Toast;
+    use WithPagination, Toast;
 
     // Filter & Tab State
-    public string $activeTab = 'kantor'; // 'kantor' or 'pabrik'
-    public string $search = '';
+    public string $activeTab      = 'kantor'; // 'kantor' or 'pabrik'
+    public string $search         = '';
     public string $departmentFilter = '';
-    public string $statusFilter = 'all'; // 'all', 'completed', 'pending'
+    public string $statusFilter   = 'all'; // 'all', 'completed', 'pending'
     public string $selectedPeriod = '';
+    public bool   $showExcluded   = false;  // Toggle tampilkan user yang di-exclude (laptop)
 
     // Maintenance Form Modal State
     public bool $showMaintenanceModal = false;
-    public ?int $selectedDeviceId = null;
+    public ?int $selectedBarangId = null;
+    public ?int $selectedPemakaiId = null;
     public string $maintCompName = '';
+    public string $maintNamaBarang = '';
     public string $maintUserName = '';
     public string $maintDate = '';
     public string $maintPeriod = '';
@@ -36,86 +40,120 @@ class Index extends Component
     public bool $maintIsUserSigned = true;
     public string $maintCondition = 'good';
     public array $checklist = [
-        'clean_dust' => true,
-        'check_thermal' => false,
-        'antivirus_scan' => true,
-        'disk_cleanup' => true,
-        'os_update' => false,
-        'network_test' => true,
-        'backup_data' => false,
+        'clean_dust'      => true,
+        'check_thermal'   => false,
+        'antivirus_scan'  => true,
+        'disk_cleanup'    => true,
+        'os_update'       => false,
+        'network_test'    => true,
+        'backup_data'     => false,
     ];
     public bool $maintHasExisting = false;
 
     // History Modal State
     public bool $showHistoryModal = false;
-    public ?ComputerDevice $historyDevice = null;
+    public ?Barang $historyBarang = null;
 
-    // Device Master CRUD Modal State
-    public bool $showDeviceModal = false;
-    public ?int $editingDeviceId = null;
-    public string $devCompName = '';
-    public string $devUserName = '';
-    public ?int $devDepartmentId = null;
-    public string $devLocation = 'kantor';
-    public string $devDeviceType = 'PC Desktop';
-    public string $devOperatingSystem = '';
-    public string $devSpecs = '';
-    public string $devStatus = 'active';
-    public string $devNotes = '';
-
-    // Bulk Import Modal State
-    public bool $showImportModal = false;
-    public string $importRawText = '';
-    public string $importLocation = 'kantor';
+    protected array $kantorDeptCodes = ['IT', 'FA', 'HRD', 'RND', 'LAB', 'ISO'];
+    protected array $pabrikDeptCodes = ['EXIM', 'SC', 'PROD', 'TEK'];
 
     public function mount()
     {
         $this->selectedPeriod = date('Y-m');
-        $this->maintDate = date('Y-m-d');
+        $this->maintDate      = date('Y-m-d');
     }
 
-    public function updatingSearch()
+    public function updatingSearch()           { $this->resetPage(); }
+    public function updatingActiveTab()        { $this->resetPage(); }
+    public function updatingDepartmentFilter() { $this->resetPage(); }
+    public function updatingStatusFilter()     { $this->resetPage(); }
+    public function updatingSelectedPeriod()   { $this->resetPage(); }
+    public function updatingShowExcluded()     { $this->resetPage(); }
+
+    public function resetFilters()
     {
+        $this->search           = '';
+        $this->departmentFilter = '';
+        $this->statusFilter     = 'all';
+        $this->showExcluded     = false;
         $this->resetPage();
     }
 
-    public function updatingActiveTab()
+    public function getFormattedPeriodProperty(): string
     {
+        try {
+            $carbon = Carbon::createFromFormat('Y-m', $this->selectedPeriod ?: date('Y-m'));
+            $bulanIndo = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+            return $bulanIndo[(int)$carbon->format('n')] . ' ' . $carbon->format('Y');
+        } catch (\Throwable $e) {
+            return $this->selectedPeriod ?: date('Y-m');
+        }
+    }
+
+    public function prevPeriod()
+    {
+        $current = $this->selectedPeriod ?: date('Y-m');
+        $this->selectedPeriod = Carbon::createFromFormat('Y-m', $current)->subMonth()->format('Y-m');
+        $this->resetPage();
+    }
+
+    public function nextPeriod()
+    {
+        $current = $this->selectedPeriod ?: date('Y-m');
+        $this->selectedPeriod = Carbon::createFromFormat('Y-m', $current)->addMonth()->format('Y-m');
+        $this->resetPage();
+    }
+
+    public function setPeriodToday()
+    {
+        $this->selectedPeriod = date('Y-m');
         $this->resetPage();
     }
 
     public function setActiveTab(string $tab)
     {
-        $this->activeTab = in_array($tab, ['kantor', 'pabrik']) ? $tab : 'kantor';
+        $this->activeTab        = in_array($tab, ['kantor', 'pabrik']) ? $tab : 'kantor';
+        $this->departmentFilter = '';
         $this->resetPage();
     }
 
-    public function updatingDepartmentFilter()
+    // --- Exclude / Restore dari PC Maintenance ---
+    public function excludeFromMaintenance(int $pemakaiId)
     {
-        $this->resetPage();
+        $pemakai = Pemakai::findOrFail($pemakaiId);
+        $pemakai->update(['exclude_pc_maintenance' => true]);
+        $this->success("{$pemakai->nama} dihapus dari daftar PC Maintenance.");
     }
 
-    public function updatingStatusFilter()
+    public function restoreToMaintenance(int $pemakaiId)
     {
-        $this->resetPage();
+        $pemakai = Pemakai::findOrFail($pemakaiId);
+        $pemakai->update(['exclude_pc_maintenance' => false]);
+        $this->success("{$pemakai->nama} dikembalikan ke daftar PC Maintenance.");
     }
 
     // --- Maintenance Actions ---
-    public function openMaintenanceModal(int $deviceId)
+    public function openMaintenanceModal(int $barangId)
     {
-        $device = ComputerDevice::with(['latestMaintenance', 'department'])->findOrFail($deviceId);
-        $this->selectedDeviceId = $device->id;
-        $this->maintCompName = $device->comp_name;
-        $this->maintUserName = $device->user_name;
-        $this->maintDate = date('Y-m-d');
-        $this->maintPeriod = $this->selectedPeriod ?: date('Y-m');
-        $this->maintUserSignName = $device->user_name;
+        $barang = Barang::with(['pemakai.department'])->findOrFail($barangId);
+        $this->selectedBarangId  = $barang->id;
+        $this->selectedPemakaiId = $barang->m_pemakai_id;
+        $this->maintCompName     = $barang->pemakai?->comp_name ?: $barang->nama_barang;
+        $this->maintNamaBarang   = $barang->nama_barang;
+        $this->maintUserName     = $barang->pemakai?->nama ?: 'User';
+        $this->maintDate         = date('Y-m-d');
+        $this->maintPeriod       = $this->selectedPeriod ?: date('Y-m');
+        $this->maintUserSignName = $this->maintUserName;
         $this->maintIsUserSigned = true;
-        $this->maintCondition = 'good';
-        $this->maintNotes = '';
+        $this->maintCondition    = 'good';
+        $this->maintNotes        = '';
 
-        // Jika sudah ada maintenance di periode ini, load data sebelumnya
-        $existing = PcMaintenanceRecord::where('computer_device_id', $device->id)
+        // Cek jika sudah ada maintenance di periode ini
+        $existing = PcMaintenanceRecord::where('m_barang_id', $barang->id)
             ->where('period', $this->maintPeriod)
             ->latest('maintenance_date')
             ->first();
@@ -123,24 +161,31 @@ class Index extends Component
         $this->maintHasExisting = (bool) $existing;
 
         if ($existing) {
-            $this->maintDate = $existing->maintenance_date->format('Y-m-d');
-            $this->maintNotes = $existing->notes ?? '';
-            $this->maintUserSignName = $existing->user_sign_name ?? $device->user_name;
+            $this->maintDate         = $existing->maintenance_date ? $existing->maintenance_date->format('Y-m-d') : date('Y-m-d');
+            $this->maintNotes        = $existing->notes ?? '';
+            $this->maintUserSignName = $existing->user_sign_name ?? $this->maintUserName;
             $this->maintIsUserSigned = (bool) $existing->is_user_signed;
-            $this->maintCondition = $existing->overall_condition ?? 'good';
+            $this->maintCondition    = $existing->overall_condition ?? 'good';
             if (is_array($existing->checklist_items)) {
-                $this->checklist = array_merge($this->checklist, $existing->checklist_items);
+                $this->checklist = array_merge([
+                    'clean_dust'     => false,
+                    'check_thermal'  => false,
+                    'antivirus_scan' => false,
+                    'disk_cleanup'   => false,
+                    'os_update'      => false,
+                    'network_test'   => false,
+                    'backup_data'    => false,
+                ], $existing->checklist_items);
             }
         } else {
-            // Default checklist tercentang standar
             $this->checklist = [
-                'clean_dust' => true,
-                'check_thermal' => false,
+                'clean_dust'     => true,
+                'check_thermal'  => false,
                 'antivirus_scan' => true,
-                'disk_cleanup' => true,
-                'os_update' => false,
-                'network_test' => true,
-                'backup_data' => false,
+                'disk_cleanup'   => true,
+                'os_update'      => false,
+                'network_test'   => true,
+                'backup_data'    => false,
             ];
         }
 
@@ -149,232 +194,181 @@ class Index extends Component
 
     public function deleteCurrentMaintenance()
     {
-        if ($this->selectedDeviceId) {
+        if ($this->selectedBarangId) {
             $period = $this->maintPeriod ?: ($this->selectedPeriod ?: date('Y-m'));
-            PcMaintenanceRecord::where('computer_device_id', $this->selectedDeviceId)
+            $record = PcMaintenanceRecord::where('m_barang_id', $this->selectedBarangId)
                 ->where('period', $period)
-                ->delete();
+                ->first();
+
+            if ($record) {
+                if ($record->work_log_id) {
+                    WorkLog::where('id', $record->work_log_id)->delete();
+                }
+                $record->delete();
+            }
 
             $this->showMaintenanceModal = false;
-            $this->success("Status maintenance untuk periode {$period} berhasil direset / dihapus!");
+            $this->success("Status maintenance untuk periode {$period} berhasil direset!");
         }
     }
 
     public function deleteRecord(int $recordId)
     {
-        $rec = PcMaintenanceRecord::findOrFail($recordId);
-        $devId = $rec->computer_device_id;
+        $rec      = PcMaintenanceRecord::findOrFail($recordId);
+        $barangId = $rec->m_barang_id;
+        if ($rec->work_log_id) {
+            WorkLog::where('id', $rec->work_log_id)->delete();
+        }
         $rec->delete();
 
-        $this->historyDevice = ComputerDevice::with(['department', 'maintenanceRecords.technician'])->find($devId);
+        if ($barangId) {
+            $this->historyBarang = Barang::with(['pemakai.department', 'pcMaintenances.technician'])->find($barangId);
+        }
         $this->success('Catatan riwayat maintenance berhasil dihapus.');
     }
 
     public function saveMaintenance()
     {
         $this->validate([
-            'maintDate' => 'required|date',
+            'maintDate'   => 'required|date',
             'maintPeriod' => 'required|string',
         ]);
 
-        $record = PcMaintenanceRecord::updateOrCreate(
+        $barang      = Barang::with('pemakai.department')->findOrFail($this->selectedBarangId);
+        $compName    = $barang->pemakai?->comp_name ?: $barang->nama_barang;
+        $pemakaiName = $this->maintUserSignName ?: ($barang->pemakai?->nama ?: 'User');
+
+        // Ringkasan tindakan dari checklist untuk worklog
+        $checklistLabels = [
+            'clean_dust'     => 'Pembersihan debu & fisik',
+            'check_thermal'  => 'Ganti pasta thermal',
+            'antivirus_scan' => 'Scan antivirus',
+            'disk_cleanup'   => 'Disk cleanup',
+            'os_update'      => 'Update OS',
+            'network_test'   => 'Tes koneksi jaringan',
+            'backup_data'    => 'Backup data',
+        ];
+
+        $actionsDone = [];
+        foreach ($this->checklist as $key => $val) {
+            if ($val && isset($checklistLabels[$key])) {
+                $actionsDone[] = $checklistLabels[$key];
+            }
+        }
+        $summaryAction = implode(', ', $actionsDone);
+        if (!empty($this->maintNotes)) {
+            $summaryAction .= ($summaryAction ? ". " : "") . "Catatan: " . $this->maintNotes;
+        }
+
+        // Kategori MTC atau PC untuk WorkLog
+        $category = Category::where('code', 'MTC')->orWhere('code', 'PC')->first()
+            ?? Category::first();
+
+        // 1. Simpan / update ke WorkLog harian (Otomatis masuk Work Log)
+        $workLog = WorkLog::updateOrCreate(
             [
-                'computer_device_id' => $this->selectedDeviceId,
-                'period' => $this->maintPeriod,
+                'device_identifier' => $compName,
+                'task_type'         => 'preventive',
+                'started_at'        => $this->maintDate . ' 08:30:00',
             ],
             [
-                'technician_id' => auth()->id(),
-                'maintenance_date' => $this->maintDate,
-                'checklist_items' => $this->checklist,
-                'notes' => $this->maintNotes,
-                'user_sign_name' => $this->maintUserSignName ?: $this->maintUserName,
-                'is_user_signed' => $this->maintIsUserSigned,
+                'user_id'           => auth()->id() ?: 1,
+                'category_id'       => $category?->id,
+                'department_id'     => $barang->pemakai?->department_id,
+                'title'             => "Maintenance Berkala PC - {$compName} ({$pemakaiName})",
+                'description'       => "Perawatan rutin berkala PC Desktop untuk periode {$this->maintPeriod}. Perangkat: {$barang->nama_barang}.",
+                'action_taken'      => $summaryAction ?: 'Pemeriksaan dan perawatan rutin PC selesai.',
+                'requester_name'    => $pemakaiName,
+                'status'            => 'completed',
+                'completed_at'      => $this->maintDate . ' 09:30:00',
+                'priority'          => match ($this->maintCondition) {
+                    'critical'         => 'critical',
+                    'needs_attention'  => 'high',
+                    default            => 'medium',
+                },
+            ]
+        );
+
+        // 2. Simpan / update ke PcMaintenanceRecord
+        PcMaintenanceRecord::updateOrCreate(
+            [
+                'm_barang_id' => $barang->id,
+                'period'      => $this->maintPeriod,
+            ],
+            [
+                'work_log_id'       => $workLog->id,
+                'technician_id'     => auth()->id() ?: 1,
+                'maintenance_date'  => $this->maintDate,
+                'checklist_items'   => $this->checklist,
+                'notes'             => $this->maintNotes,
+                'user_sign_name'    => $pemakaiName,
+                'is_user_signed'    => $this->maintIsUserSigned,
                 'overall_condition' => $this->maintCondition,
             ]
         );
 
-        $this->success("Maintenance untuk {$this->maintCompName} ({$this->maintUserName}) berhasil disimpan!");
+        $this->success("Maintenance untuk {$compName} ({$pemakaiName}) berhasil disimpan & otomatis tercatat di Work Log!");
         $this->showMaintenanceModal = false;
     }
 
     // --- History Action ---
-    public function openHistoryModal(int $deviceId)
+    public function openHistoryModal(int $barangId)
     {
-        $this->historyDevice = ComputerDevice::with(['department', 'maintenanceRecords.technician'])->findOrFail($deviceId);
+        $this->historyBarang = Barang::with(['pemakai.department', 'pcMaintenances.technician'])->findOrFail($barangId);
         $this->showHistoryModal = true;
     }
 
-    // --- Device Master CRUD ---
-    public function openCreateDeviceModal()
-    {
-        $this->reset([
-            'editingDeviceId',
-            'devCompName',
-            'devUserName',
-            'devSpecs',
-            'devNotes',
-            'devOperatingSystem',
-        ]);
-        $this->devLocation = $this->activeTab;
-        $this->devDeviceType = 'PC Desktop';
-        $this->devStatus = 'active';
-        $firstDept = Department::first();
-        $this->devDepartmentId = $firstDept ? $firstDept->id : null;
-        $this->showDeviceModal = true;
-    }
-
-    public function openEditDeviceModal(int $id)
-    {
-        $dev = ComputerDevice::findOrFail($id);
-        $this->editingDeviceId = $dev->id;
-        $this->devCompName = $dev->comp_name;
-        $this->devUserName = $dev->user_name;
-        $this->devDepartmentId = $dev->department_id;
-        $this->devLocation = $dev->location;
-        $this->devDeviceType = $dev->device_type;
-        $this->devOperatingSystem = $dev->operating_system ?? '';
-        $this->devSpecs = $dev->specs ?? '';
-        $this->devStatus = $dev->status ?? 'active';
-        $this->devNotes = $dev->notes ?? '';
-        $this->showDeviceModal = true;
-    }
-
-    public function saveDevice()
-    {
-        $this->validate([
-            'devCompName' => 'required|string|max:100',
-            'devUserName' => 'required|string|max:150',
-            'devLocation' => 'required|in:kantor,pabrik',
-            'devDepartmentId' => 'nullable|exists:departments,id',
-        ]);
-
-        $data = [
-            'comp_name' => $this->devCompName,
-            'user_name' => $this->devUserName,
-            'department_id' => $this->devDepartmentId,
-            'location' => $this->devLocation,
-            'device_type' => $this->devDeviceType,
-            'operating_system' => $this->devOperatingSystem,
-            'specs' => $this->devSpecs,
-            'status' => $this->devStatus,
-            'notes' => $this->devNotes,
-        ];
-
-        if ($this->editingDeviceId) {
-            ComputerDevice::findOrFail($this->editingDeviceId)->update($data);
-            $this->success("Data PC '{$this->devCompName}' berhasil diperbarui!");
-        } else {
-            ComputerDevice::create($data);
-            $this->success("Perangkat PC baru '{$this->devCompName}' berhasil ditambahkan!");
-        }
-
-        $this->showDeviceModal = false;
-    }
-
-    public function deleteDevice(int $id)
-    {
-        $dev = ComputerDevice::findOrFail($id);
-        $name = $dev->comp_name;
-        $dev->delete();
-        $this->success("Perangkat {$name} berhasil dihapus!");
-    }
-
-    // --- Bulk Import Action ---
-    public function openImportModal()
-    {
-        $this->importRawText = '';
-        $this->importLocation = $this->activeTab;
-        $this->showImportModal = true;
-    }
-
-    public function processImport()
-    {
-        $lines = explode("\n", trim($this->importRawText));
-        if (empty($lines) || empty(trim($lines[0]))) {
-            $this->error('Teks input tidak boleh kosong.');
-            return;
-        }
-
-        $count = 0;
-        foreach ($lines as $line) {
-            $parts = preg_split('/[\t,;]+/', trim($line));
-            if (count($parts) >= 2) {
-                $user = trim($parts[0]);
-                $comp = trim($parts[1]);
-                $deptCode = isset($parts[2]) ? strtoupper(trim($parts[2])) : null;
-
-                $dept = null;
-                if ($deptCode) {
-                    $dept = Department::where('code', $deptCode)->orWhere('name', 'like', "%{$deptCode}%")->first();
-                }
-
-                ComputerDevice::updateOrCreate(
-                    ['comp_name' => $comp, 'location' => $this->importLocation],
-                    [
-                        'user_name' => $user,
-                        'department_id' => $dept ? $dept->id : null,
-                        'device_type' => 'PC Desktop',
-                        'status' => 'active',
-                    ]
-                );
-                $count++;
-            }
-        }
-
-        $this->success("Berhasil mengimpor {$count} unit komputer ke unit {$this->importLocation}!");
-        $this->showImportModal = false;
-    }
-
-    // --- Export to CSV matching Excel columns ---
+    // --- Export CSV / Excel ---
     public function exportExcel()
     {
-        $locationLabel = ucfirst($this->activeTab);
-        $period = $this->selectedPeriod ?: date('Y-m');
-        $devices = ComputerDevice::with(['department', 'maintenanceRecords' => function ($q) use ($period) {
-            $q->where('period', $period);
-        }])
-        ->where('location', $this->activeTab)
-        ->orderBy('id')
+        $period          = $this->selectedPeriod ?: date('Y-m');
+        $currentDeptCodes = $this->activeTab === 'kantor' ? $this->kantorDeptCodes : $this->pabrikDeptCodes;
+
+        $pemakais = Pemakai::with([
+            'department',
+            'barangs' => fn($q) => $q->where('kategori', 'komputer')->where('status', 'aktif')
+                ->with(['pcMaintenances' => fn($q2) => $q2->where('period', $period)->latest('maintenance_date')]),
+        ])
+        ->where('status', true)
+        ->whereHas('department', fn($q) => $q->whereIn('code', $currentDeptCodes))
+        ->orderBy('nama')
         ->get();
 
-        $filename = "Jadwal_Maintenance_PC_PT_Aneka_Coffee_Industry_{$this->activeTab}_{$period}.csv";
+        $filename = "PC_Maintenance_{$this->activeTab}_{$period}.csv";
 
         $headers = [
-            "Content-type" => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename={$filename}",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0",
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
         ];
 
-        $callback = function () use ($devices, $locationLabel, $period) {
+        $callback = function () use ($pemakais) {
             $file = fopen('php://output', 'w');
-            // Add BOM for UTF-8 compatibility with MS Excel
-            fputs($file, "\xEF\xBB\xBF");
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM for UTF-8 Excel
 
-            // Judul Header Dokumen
-            fputcsv($file, ["Jadwal Maintenance PC PT. Aneka Coffee Industry ({$locationLabel}) - Periode {$period}"]);
-            fputcsv($file, []);
-
-            // Baris Header Kolom persis seperti Excel
-            fputcsv($file, ['#', 'User', 'Comp Name', 'Dept', 'Tanggal', 'Notes', 'Ttd user']);
+            fputcsv($file, [
+                'No', 'User', 'Comp Name', 'Dept',
+                'Tanggal Maintenance', 'Kondisi', 'Catatan', 'Ttd User',
+            ], ",", '"', "\\");
 
             $no = 1;
-            foreach ($devices as $d) {
-                $record = $d->maintenanceRecords->first();
-                $tgl = $record ? $record->maintenance_date->format('d/m/Y') : '';
-                $notes = $record ? $record->notes : '';
-                $ttd = ($record && $record->is_user_signed) ? ($record->user_sign_name ?: 'Sudah Ttd') : '';
+            foreach ($pemakais as $p) {
+                $barang = $p->barangs->first();
+                $record = $barang?->pcMaintenances->first();
+                $tgl    = $record && $record->maintenance_date ? $record->maintenance_date->format('d/m/Y') : 'Belum';
+                $notes  = $record ? $record->notes : '';
+                $ttd    = ($record && $record->is_user_signed) ? ($record->user_sign_name ?: 'Sudah TTD') : 'Belum';
+                $cond   = $record ? ucfirst($record->overall_condition) : '-';
 
                 fputcsv($file, [
                     $no++,
-                    $d->user_name,
-                    $d->comp_name,
-                    $d->department ? $d->department->name : '-',
-                    $tgl,
-                    $notes,
-                    $ttd,
-                ]);
+                    $p->nama,
+                    $barang ? ($p->comp_name ?: $barang->nama_barang) : '-',
+                    $p->department?->code ?: '-',
+                    $tgl, $cond, $notes, $ttd,
+                ], ",", '"', "\\");
             }
 
             fclose($file);
@@ -385,95 +379,94 @@ class Index extends Component
 
     public function render()
     {
-        $period = $this->selectedPeriod ?: date('Y-m');
-        $term   = '%' . trim($this->search) . '%';
+        $period           = $this->selectedPeriod ?: date('Y-m');
+        $term             = '%' . trim($this->search) . '%';
+        $currentDeptCodes = $this->activeTab === 'kantor' ? $this->kantorDeptCodes : $this->pabrikDeptCodes;
 
-        // Cari Routine Schedule aktif yang berlaku untuk tab lokasi ini
-        $activeSchedule = RoutineSchedule::where('is_active', true)
-            ->where(function ($q) {
-                $q->where('pc_location', $this->activeTab)
-                  ->orWhere('pc_location', 'semua');
-            })
-            ->latest('id') // ambil yang paling baru jika ada lebih dari 1
-            ->first();
-
-        // Query Perangkat
-        $query = ComputerDevice::with([
+        // Query utama: berbasis Pemakai — tampilkan semua user, komputer menyusul
+        $query = Pemakai::with([
             'department',
-            'maintenanceRecords' => function ($q) use ($period) {
-                $q->where('period', $period)->latest('maintenance_date');
-            },
-            'latestMaintenance',
+            'barangs' => fn($q) => $q->where('kategori', 'komputer')->where('status', 'aktif')
+                ->with(['pcMaintenances' => fn($q2) => $q2->where('period', $period)->latest('maintenance_date')]),
         ])
-        ->where('location', $this->activeTab)
-        ->when($this->search, function ($q) use ($term) {
-            $q->where(function ($sub) use ($term) {
-                $sub->where('comp_name', 'like', $term)
-                    ->orWhere('user_name', 'like', $term);
-            });
-        })
-        ->when($this->departmentFilter, function ($q) {
-            $q->where('department_id', $this->departmentFilter);
-        });
+        ->where('status', true)
+        ->when(!$this->showExcluded, fn($q) => $q->where('exclude_pc_maintenance', false))
+        ->whereHas('department', fn($q) => $q->whereIn('code', $currentDeptCodes))
+        ->when($this->search, fn($q) => $q->where(fn($sub) => $sub
+            ->where('nama', 'like', $term)
+            ->orWhere('comp_name', 'like', $term)
+        ))
+        ->when($this->departmentFilter, fn($q) => $q->where('department_id', $this->departmentFilter));
 
-        // Filter status selesai/belum di periode ini
+        // Status filter: 'completed' = punya barang + punya record periode ini, 'pending' = belum
         if ($this->statusFilter === 'completed') {
-            $query->whereHas('maintenanceRecords', function ($q) use ($period) {
-                $q->where('period', $period);
-            });
+            $query->whereHas('barangs', fn($q) => $q->where('kategori', 'komputer')->where('status', 'aktif')
+                ->whereHas('pcMaintenances', fn($q2) => $q2->where('period', $period))
+            );
         } elseif ($this->statusFilter === 'pending') {
-            $query->whereDoesntHave('maintenanceRecords', function ($q) use ($period) {
-                $q->where('period', $period);
-            });
+            $query->where(fn($q) =>
+                // Pemakai tanpa komputer ATAU pemakai dengan komputer tapi belum di-maintenance
+                $q->whereDoesntHave('barangs', fn($bq) => $bq->where('kategori', 'komputer')->where('status', 'aktif'))
+                  ->orWhereHas('barangs', fn($bq) => $bq->where('kategori', 'komputer')->where('status', 'aktif')
+                      ->whereDoesntHave('pcMaintenances', fn($mq) => $mq->where('period', $period))
+                  )
+            );
         }
 
-        $devices = $query->orderBy('id')->paginate(15);
+        $pemakais = $query->orderBy('nama')->paginate(15);
 
-        // Hitung due date info per device jika ada jadwal aktif
-        $dueDateMap = [];
-        if ($activeSchedule) {
-            foreach ($devices as $device) {
-                $lastDate  = $device->latestMaintenance
-                    ? Carbon::parse($device->latestMaintenance->maintenance_date)
-                    : null;
+        // Department options for current active tab
+        $departments = Department::whereIn('code', $currentDeptCodes)->orderBy('name')->get();
 
-                $nextDue   = $activeSchedule->nextDueDate($lastDate);
-                $daysLeft  = (int) Carbon::today()->diffInDays($nextDue, false); // negatif = overdue
-                $isOverdue = $nextDue->isPast() && !$nextDue->isToday();
-                $isToday   = $nextDue->isToday();
-                $neverMaintained = $lastDate === null;
+        // Statistik: hitung total pemakai aktif yang tidak di-exclude
+        $totalKantor = Pemakai::where('status', true)
+            ->where('exclude_pc_maintenance', false)
+            ->whereHas('department', fn($q) => $q->whereIn('code', $this->kantorDeptCodes))
+            ->count();
 
-                $dueDateMap[$device->id] = [
-                    'next_due'        => $nextDue,
-                    'days_left'       => $daysLeft,
-                    'is_overdue'      => $isOverdue,
-                    'is_today'        => $isToday,
-                    'never_maintained'=> $neverMaintained,
-                ];
-            }
+        $totalPabrik = Pemakai::where('status', true)
+            ->where('exclude_pc_maintenance', false)
+            ->whereHas('department', fn($q) => $q->whereIn('code', $this->pabrikDeptCodes))
+            ->count();
+
+        // Total user yang di-exclude pada tab yang aktif saat ini
+        $totalExcluded = Pemakai::where('status', true)
+            ->where('exclude_pc_maintenance', true)
+            ->whereHas('department', fn($q) => $q->whereIn('code', $currentDeptCodes))
+            ->count();
+
+        // Completed: pemakai yang punya komputer + sudah di-maintenance periode ini
+        $completedCurrentPeriod = Pemakai::where('status', true)
+            ->whereHas('department', fn($q) => $q->whereIn('code', $currentDeptCodes))
+            ->whereHas('barangs', fn($q) => $q->where('kategori', 'komputer')->where('status', 'aktif')
+                ->whereHas('pcMaintenances', fn($q2) => $q2->where('period', $period))
+            )->count();
+
+        $totalActiveTab   = $this->activeTab === 'kantor' ? $totalKantor : $totalPabrik;
+        $progressPercent  = $totalActiveTab > 0 ? round(($completedCurrentPeriod / $totalActiveTab) * 100) : 0;
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        try {
+            $carbonPeriod    = Carbon::createFromFormat('Y-m', $period);
+            $formattedPeriod = $bulanIndo[(int)$carbonPeriod->format('n')] . ' ' . $carbonPeriod->format('Y');
+        } catch (\Throwable $e) {
+            $formattedPeriod = $period;
         }
-
-        // Statistik Cepat
-        $totalKantor  = ComputerDevice::kantor()->count();
-        $totalPabrik  = ComputerDevice::pabrik()->count();
-        $completedCurrentPeriod = PcMaintenanceRecord::where('period', $period)
-            ->whereHas('computerDevice', function ($q) {
-                $q->where('location', $this->activeTab);
-            })->count();
-
-        $totalActiveTab  = $this->activeTab === 'kantor' ? $totalKantor : $totalPabrik;
-        $progressPercent = $totalActiveTab > 0 ? round(($completedCurrentPeriod / $totalActiveTab) * 100) : 0;
 
         return view('livewire.pc-maintenance.index', [
-            'devices'               => $devices,
-            'departments'           => Department::orderBy('name')->get(),
-            'totalKantor'           => $totalKantor,
-            'totalPabrik'           => $totalPabrik,
-            'completedCurrentPeriod'=> $completedCurrentPeriod,
-            'totalActiveTab'        => $totalActiveTab,
-            'progressPercent'       => $progressPercent,
-            'activeSchedule'        => $activeSchedule,
-            'dueDateMap'            => $dueDateMap,
+            'pemakais'               => $pemakais,
+            'departments'            => $departments,
+            'totalKantor'            => $totalKantor,
+            'totalPabrik'            => $totalPabrik,
+            'totalExcluded'          => $totalExcluded,
+            'completedCurrentPeriod' => $completedCurrentPeriod,
+            'totalActiveTab'         => $totalActiveTab,
+            'progressPercent'        => $progressPercent,
+            'formattedPeriod'        => $formattedPeriod,
         ]);
     }
 }

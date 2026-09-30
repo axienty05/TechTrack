@@ -81,7 +81,13 @@
                 <li class="menu-title px-2 pt-1">
                     <span class="text-[10px] font-bold uppercase tracking-widest opacity-50 hidden-when-collapsed">Inventaris</span>
                 </li>
-                <x-mary-menu-item title="Daftar Barang & Aset" icon="o-cube" route="inventory.items" />
+                <x-mary-menu-item title="Pemakai" icon="o-user-group" route="pemakais" />
+                <x-mary-menu-item title="Data Barang" icon="o-cube" route="barangs" />
+                <x-mary-menu-item title="Mutasi Barang" icon="o-arrows-right-left" route="mutasis" />
+                <x-mary-menu-item title="Service Eksternal" icon="o-wrench-screwdriver" route="services" />
+                <x-mary-menu-item title="Service Internal" icon="o-cog-6-tooth" route="service-internals" />
+                <x-mary-menu-item title="Supplier" icon="o-truck" route="suppliers" />
+                <x-mary-menu-item title="Service Center" icon="o-building-storefront" route="service-centers" />
 
                 {{-- ─── MASTER DATA (ADMIN) ─── --}}
                 @if(in_array(auth()->user()->role ?? '', ['admin', 'it_lead']))

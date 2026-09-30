@@ -14,6 +14,7 @@ class ComputerDevice extends Model
 
     protected $fillable = [
         'comp_name',
+        'm_pemakai_id',
         'user_name',
         'department_id',
         'location',
@@ -24,6 +25,11 @@ class ComputerDevice extends Model
         'status',
         'notes',
     ];
+
+    public function pemakai(): BelongsTo
+    {
+        return $this->belongsTo(Pemakai::class, 'm_pemakai_id');
+    }
 
     public function department(): BelongsTo
     {
@@ -38,6 +44,33 @@ class ComputerDevice extends Model
     public function latestMaintenance(): HasOne
     {
         return $this->hasOne(PcMaintenanceRecord::class)->latestOfMany('maintenance_date');
+    }
+
+    public function getUserNameAttribute(): ?string
+    {
+        return $this->pemakai?->nama;
+    }
+
+    public function setUserNameAttribute($value): void
+    {
+        if (!empty($value)) {
+            $pemakai = \App\Models\Pemakai::firstOrCreate(
+                ['nama' => $value],
+                [
+                    'comp_name' => $this->comp_name,
+                    'department_id' => $this->department_id,
+                    'status' => true,
+                ]
+            );
+            $this->attributes['m_pemakai_id'] = $pemakai->id;
+        }
+    }
+
+    public function scopeWhereUserName($query, string $name, string $operator = '=')
+    {
+        return $query->whereHas('pemakai', function ($q) use ($name, $operator) {
+            $q->where('nama', $operator, $name);
+        });
     }
 
     public function scopeKantor($query)

@@ -15,6 +15,40 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 class WorkLogAutoLinkTest extends TestCase
 {
     use DatabaseTransactions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $pemakai1 = \App\Models\Pemakai::firstOrCreate(
+            ['nama' => 'Gbaku (PC Lama)'],
+            ['comp_name' => 'SC', 'status' => true]
+        );
+        ComputerDevice::firstOrCreate(
+            ['comp_name' => 'SC'],
+            [
+                'm_pemakai_id' => $pemakai1->id,
+                'location' => 'pabrik',
+                'device_type' => 'desktop',
+                'status' => 'active',
+            ]
+        );
+
+        $pemakai2 = \App\Models\Pemakai::firstOrCreate(
+            ['nama' => 'GBaku'],
+            ['comp_name' => 'RMWH', 'status' => true]
+        );
+        ComputerDevice::firstOrCreate(
+            ['comp_name' => 'RMWH'],
+            [
+                'm_pemakai_id' => $pemakai2->id,
+                'location' => 'pabrik',
+                'device_type' => 'desktop',
+                'status' => 'active',
+            ]
+        );
+    }
+
     public function test_find_matching_device_for_maintenance_pc_lama_gbaku()
     {
         $device = WorkLogsIndex::findMatchingComputerDevice('Maintenance PC Lama Gbaku');
@@ -50,7 +84,7 @@ class WorkLogAutoLinkTest extends TestCase
             ->call('save');
 
         // Verify that PcMaintenanceRecord is created for device 49
-        $device = ComputerDevice::where('comp_name', 'SC')->where('user_name', 'LIKE', '%Gbaku%')->first();
+        $device = ComputerDevice::where('comp_name', 'SC')->whereHas('pemakai', fn($q) => $q->where('nama', 'LIKE', '%Gbaku%'))->first();
         $this->assertNotNull($device);
 
         $currentPeriod = date('Y-m');
@@ -60,5 +94,30 @@ class WorkLogAutoLinkTest extends TestCase
 
         $this->assertNotNull($record, 'PC Maintenance Record should be auto-created for the period');
         $this->assertEquals($user->id, $record->technician_id);
+    }
+
+    public function test_non_maintenance_task_type_preservation()
+    {
+        $user = User::first() ?? User::factory()->create();
+        $cat = Category::first();
+
+        $uniqueTitle = 'Unit Test Setup Akun Email Lusi ' . uniqid();
+
+        Livewire::actingAs($user)
+            ->test(WorkLogsIndex::class)
+            ->call('openCreateModal')
+            ->set('title', $uniqueTitle)
+            ->set('requester_name', 'Lusi')
+            ->set('category_id', $cat->id)
+            ->set('task_type', 'administrative')
+            ->assertSet('task_type', 'administrative')
+            ->call('save');
+
+        $log = \App\Models\WorkLog::where('title', $uniqueTitle)->first();
+        $this->assertNotNull($log);
+        $this->assertEquals('administrative', $log->task_type, 'Task type must remain administrative');
+
+        $record = PcMaintenanceRecord::where('work_log_id', $log->id)->first();
+        $this->assertNull($record, 'No PC Maintenance record should be created for non-preventive task');
     }
 }

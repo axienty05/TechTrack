@@ -17,3 +17,18 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Scratch & debug scripts
+/scratch_*.php
+/get_step*.php
+/restore_*.php
+/test_*.php
+/status_check.php
+/verify_pc_maintenance.php
+/clean_inventory.php
+/check_inventory_items.php
+/check_schedules.php
+/fix_schedules.php
+/reset_to_exact_10am.php
+/backfill_pc_maintenance.php
+/storage/*.php

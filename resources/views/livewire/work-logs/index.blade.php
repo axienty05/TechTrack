@@ -326,7 +326,11 @@
                             <div class="flex items-center gap-2">
                                 <x-mary-icon name="o-check-badge" class="w-4 h-4 flex-shrink-0 text-emerald-500" />
                                 <span>
-                                    Terhubung Otomatis ke PC Maintenance: <strong>{{ $detectedDevSummary }}</strong>
+                                    @if($task_type === 'preventive')
+                                        Terhubung Otomatis ke PC Maintenance: <strong>{{ $detectedDevSummary }}</strong>
+                                    @else
+                                        Perangkat Terdeteksi: <strong>{{ $detectedDevSummary }}</strong>
+                                    @endif
                                 </span>
                             </div>
                             <span class="badge badge-sm {{ $detectedDevLocation === 'pabrik' ? 'badge-warning' : 'badge-info' }} font-semibold text-[10px] uppercase">

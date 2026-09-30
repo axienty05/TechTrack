@@ -16,6 +16,11 @@ class Department extends Model
         'floor_location',
     ];
 
+    public function getFullNameAttribute(): string
+    {
+        return $this->code ? "{$this->code} - {$this->name}" : $this->name;
+    }
+
     public function workLogs(): HasMany
     {
         return $this->hasMany(WorkLog::class);

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Department;
 use App\Models\ComputerDevice;
+use App\Models\Pemakai;
 
 class ComputerDeviceSeeder extends Seeder
 {
@@ -65,10 +66,19 @@ class ComputerDeviceSeeder extends Seeder
 
         foreach ($kantorDevices as $d) {
             $dept = $departmentsMap[$d['dept']] ?? null;
+            $pemakai = Pemakai::firstOrCreate(
+                ['nama' => $d['user']],
+                [
+                    'comp_name' => $d['comp'],
+                    'department_id' => $dept ? $dept->id : null,
+                    'status' => true,
+                ]
+            );
+
             ComputerDevice::updateOrCreate(
                 ['comp_name' => $d['comp'], 'location' => 'kantor'],
                 [
-                    'user_name' => $d['user'],
+                    'm_pemakai_id' => $pemakai->id,
                     'department_id' => $dept ? $dept->id : null,
                     'device_type' => $d['type'],
                     'status' => 'active',
@@ -81,14 +91,25 @@ class ComputerDeviceSeeder extends Seeder
             ['user' => 'Abiyyu', 'comp' => 'PPIC-02', 'dept' => 'PPIC', 'type' => 'PC Desktop'],
             ['user' => 'Nunuk', 'comp' => 'PPIC-03', 'dept' => 'PPIC', 'type' => 'PC Desktop'],
             ['user' => 'Arifin', 'comp' => 'PPIC-04', 'dept' => 'PPIC', 'type' => 'PC Desktop'],
+            ['user' => 'Gbaku (PC Lama)', 'comp' => 'SC', 'dept' => 'PPIC', 'type' => 'PC Desktop'],
+            ['user' => 'GBaku', 'comp' => 'RMWH', 'dept' => 'PPIC', 'type' => 'PC Desktop'],
         ];
 
         foreach ($pabrikDevices as $d) {
             $dept = $departmentsMap[$d['dept']] ?? null;
+            $pemakai = Pemakai::firstOrCreate(
+                ['nama' => $d['user']],
+                [
+                    'comp_name' => $d['comp'],
+                    'department_id' => $dept ? $dept->id : null,
+                    'status' => true,
+                ]
+            );
+
             ComputerDevice::updateOrCreate(
                 ['comp_name' => $d['comp'], 'location' => 'pabrik'],
                 [
-                    'user_name' => $d['user'],
+                    'm_pemakai_id' => $pemakai->id,
                     'department_id' => $dept ? $dept->id : null,
                     'device_type' => $d['type'],
                     'status' => 'active',

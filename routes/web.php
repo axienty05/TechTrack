@@ -22,9 +22,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/pc-maintenance', PcMaintenanceIndex::class)->name('pc-maintenance');
     Route::get('/profile', ProfileEdit::class)->name('profile');
 
-    Route::get('/inventory/items', \App\Livewire\Inventory\Index::class)->name('inventory.items');
-    Route::get('/inventory/items/create', \App\Livewire\Inventory\Form::class)->name('inventory.items.create');
-    Route::get('/inventory/items/{item}/edit', \App\Livewire\Inventory\Form::class)->name('inventory.items.edit');
+    // ─── INVENTARIS & ASET IT ───
+    Route::get('/inventaris/pemakai', \App\Livewire\Pemakais\Index::class)->name('pemakais');
+    Route::get('/inventaris/barang', \App\Livewire\Barangs\Index::class)->name('barangs');
+    Route::get('/inventaris/barang/tambah', \App\Livewire\Barangs\Form::class)->name('barangs.create');
+    Route::get('/inventaris/barang/{barang}/edit', \App\Livewire\Barangs\Form::class)->name('barangs.edit');
+    Route::get('/inventaris/mutasi', \App\Livewire\Mutasis\Index::class)->name('mutasis');
+    Route::get('/inventaris/mutasi/tambah', \App\Livewire\Mutasis\Form::class)->name('mutasis.create');
+    Route::get('/inventaris/supplier', \App\Livewire\Suppliers\Index::class)->name('suppliers');
+    Route::get('/inventaris/service-center', \App\Livewire\ServiceCenters\Index::class)->name('service-centers');
+    Route::get('/inventaris/service', \App\Livewire\Services\Index::class)->name('services');
+    Route::get('/inventaris/service-internal', \App\Livewire\ServiceInternals\Index::class)->name('service-internals');
+    Route::get('/inventaris/service-internal/print', [\App\Http\Controllers\ServiceInternalPrintController::class, 'print'])->name('service-internals.print');
 
     // Master Data - hanya bisa diakses oleh admin dan it_lead
     Route::middleware('role:admin,it_lead')->group(function () {

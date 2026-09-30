@@ -36,6 +36,21 @@ class WorkLog extends Model
         'duration_minutes' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function ($workLog) {
+            if (empty($workLog->ticket_number)) {
+                $datePrefix = date('Ymd');
+                do {
+                    $suffix = str_pad((string) random_int(1, 999), 3, '0', STR_PAD_LEFT);
+                    $ticketNumber = "IT-{$datePrefix}-{$suffix}";
+                } while (static::where('ticket_number', $ticketNumber)->exists());
+
+                $workLog->ticket_number = $ticketNumber;
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

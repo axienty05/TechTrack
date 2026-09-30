@@ -1,256 +1,305 @@
-<div class="space-y-4 sm:space-y-5">
+<div class="space-y-5">
 
     {{-- ======================================================= --}}
-    {{-- HEADER & STATS --}}
+    {{-- HEADER & ACTIONS --}}
     {{-- ======================================================= --}}
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2">
-                <x-mary-icon name="o-computer-desktop" class="w-7 h-7 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
-                <span>PC Maintenance</span>
-            </h1>
-            <p class="text-xs sm:text-sm opacity-60 mt-0.5">Jadwal Pemeliharaan Komputer PT. Aneka Coffee Industry</p>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-sm flex items-center justify-center shrink-0">
+                <x-mary-icon name="o-computer-desktop" class="w-6 h-6" />
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">PC Maintenance</h1>
+                <p class="text-xs sm:text-sm opacity-60">Jadwal & Riwayat Pemeliharaan Komputer PT. Aneka Coffee Industry</p>
+            </div>
         </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button wire:click="openImportModal" class="btn btn-outline btn-sm gap-2 flex-1 sm:flex-initial">
-                <x-mary-icon name="o-arrow-up-tray" class="w-4 h-4" />
-                Import Data
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <button wire:click="exportExcel" class="btn btn-outline btn-success shadow-sm font-medium gap-2 flex-1 sm:flex-initial">
+                <x-mary-icon name="o-arrow-down-tray" class="w-4 h-4" />
+                <span>Export CSV</span>
             </button>
-            <button wire:click="openCreateDeviceModal" class="btn btn-primary btn-sm gap-2 shadow-lg flex-1 sm:flex-initial">
-                <x-mary-icon name="o-plus" class="w-4 h-4" />
-                Tambah PC
-            </button>
+            <a href="{{ route('barangs') }}" class="btn btn-primary shadow-lg shadow-primary/20 font-medium gap-2 flex-1 sm:flex-initial">
+                <x-mary-icon name="o-cube" class="w-4 h-4" />
+                <span>Data Barang & Aset</span>
+            </a>
         </div>
     </div>
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-            <div class="bg-primary/10 rounded-xl p-2 sm:p-3 flex-shrink-0">
-                <x-mary-icon name="o-building-office" class="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+    {{-- ======================================================= --}}
+    {{-- STATS CARDS --}}
+    {{-- ======================================================= --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {{-- User Kantor --}}
+        <div class="bg-base-100 p-4 rounded-2xl shadow-sm border border-base-content/5 flex items-center gap-3.5 hover:border-primary/20 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                <x-mary-icon name="o-building-office" class="w-6 h-6" />
             </div>
-            <div class="min-w-0">
-                <div class="text-xl sm:text-2xl font-bold text-primary truncate">{{ $totalKantor }}</div>
-                <div class="text-[11px] sm:text-xs opacity-60 truncate">Unit Kantor</div>
-            </div>
-        </div>
-        <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-            <div class="bg-secondary/10 rounded-xl p-2 sm:p-3 flex-shrink-0">
-                <x-mary-icon name="o-building-storefront" class="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
-            </div>
-            <div class="min-w-0">
-                <div class="text-xl sm:text-2xl font-bold text-secondary truncate">{{ $totalPabrik }}</div>
-                <div class="text-[11px] sm:text-xs opacity-60 truncate">Unit Pabrik</div>
+            <div>
+                <div class="text-2xl font-black tracking-tight text-primary">{{ $totalKantor }}</div>
+                <div class="text-xs opacity-60 font-medium">User Kantor</div>
             </div>
         </div>
-        <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-            <div class="bg-success/10 rounded-xl p-2 sm:p-3 flex-shrink-0">
-                <x-mary-icon name="o-check-circle" class="w-5 h-5 sm:w-6 sm:h-6 text-success" />
+
+        {{-- User Pabrik --}}
+        <div class="bg-base-100 p-4 rounded-2xl shadow-sm border border-base-content/5 flex items-center gap-3.5 hover:border-secondary/20 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center shrink-0">
+                <x-mary-icon name="o-building-storefront" class="w-6 h-6" />
             </div>
-            <div class="min-w-0">
-                <div class="text-xl sm:text-2xl font-bold text-success truncate">{{ $completedCurrentPeriod }}</div>
-                <div class="text-[11px] sm:text-xs opacity-60 truncate">Selesai Periode Ini</div>
+            <div>
+                <div class="text-2xl font-black tracking-tight text-secondary">{{ $totalPabrik }}</div>
+                <div class="text-xs opacity-60 font-medium">User Pabrik</div>
             </div>
         </div>
-        <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 p-3 sm:p-4 flex flex-col justify-center gap-1 col-span-2 lg:col-span-1">
+
+        {{-- Selesai Periode Ini --}}
+        <div class="bg-base-100 p-4 rounded-2xl shadow-sm border border-base-content/5 flex items-center gap-3.5 hover:border-emerald-500/20 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                <x-mary-icon name="o-check-circle" class="w-6 h-6" />
+            </div>
+            <div>
+                <div class="text-2xl font-black tracking-tight text-emerald-500">{{ $completedCurrentPeriod }}</div>
+                <div class="text-xs opacity-60 font-medium">Selesai Periode Ini</div>
+            </div>
+        </div>
+
+        {{-- Progres Periode --}}
+        <div class="bg-base-100 p-4 rounded-2xl shadow-sm border border-base-content/5 flex flex-col justify-center gap-1.5 col-span-2 lg:col-span-1">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] sm:text-xs opacity-60">Progres Periode</span>
-                <span class="text-xs font-bold text-primary">{{ $progressPercent }}%</span>
+                <span class="text-xs opacity-60 font-medium">Progres Periode</span>
+                <span class="text-xs font-black text-primary">{{ $progressPercent }}%</span>
             </div>
-            <progress class="progress progress-primary w-full h-2" value="{{ $progressPercent }}" max="100"></progress>
-            <div class="text-[11px] sm:text-xs opacity-50 truncate">{{ ucfirst($activeTab) }}: {{ $completedCurrentPeriod }}/{{ $totalActiveTab }} selesai</div>
+            <progress class="progress progress-primary w-full h-2 rounded-full" value="{{ $progressPercent }}" max="100"></progress>
+            <div class="text-[11px] opacity-50 truncate">{{ ucfirst($activeTab) }}: {{ $completedCurrentPeriod }} dari {{ $totalActiveTab }} selesai</div>
         </div>
     </div>
 
     {{-- ======================================================= --}}
-    {{-- FILTER BAR --}}
+    {{-- TABS & CONTROLS BAR --}}
     {{-- ======================================================= --}}
-    <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 p-3 sm:p-4 space-y-3">
-        {{-- Tab Kantor / Pabrik --}}
-        <div class="inline-flex p-1 bg-base-200/80 rounded-xl gap-1 w-full sm:w-auto">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {{-- Modern Tab Kantor vs Pabrik --}}
+        <div class="inline-flex p-1 bg-base-200/80 rounded-2xl border border-base-content/5 gap-1 shadow-xs w-full sm:w-auto">
             <button type="button" wire:click="setActiveTab('kantor')"
-                class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer {{ $activeTab === 'kantor' ? 'bg-base-100 text-primary shadow-sm' : 'text-base-content/70 hover:text-base-content hover:bg-base-100/50' }}">
+                class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer {{ $activeTab === 'kantor' ? 'bg-primary text-primary-content shadow-sm shadow-primary/20' : 'text-base-content/70 hover:text-base-content hover:bg-base-100/50' }}">
                 <x-mary-icon name="o-building-office" class="w-4 h-4" />
-                <span>Unit Kantor ({{ $totalKantor }})</span>
+                <span>Unit Kantor</span>
+                <span class="badge badge-sm font-semibold {{ $activeTab === 'kantor' ? 'bg-primary-content/20 text-primary-content border-none' : 'badge-ghost' }}">
+                    {{ $totalKantor }}
+                </span>
             </button>
             <button type="button" wire:click="setActiveTab('pabrik')"
-                class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer {{ $activeTab === 'pabrik' ? 'bg-base-100 text-secondary shadow-sm' : 'text-base-content/70 hover:text-base-content hover:bg-base-100/50' }}">
+                class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer {{ $activeTab === 'pabrik' ? 'bg-secondary text-secondary-content shadow-sm shadow-secondary/20' : 'text-base-content/70 hover:text-base-content hover:bg-base-100/50' }}">
                 <x-mary-icon name="o-building-storefront" class="w-4 h-4" />
-                <span>Unit Pabrik ({{ $totalPabrik }})</span>
+                <span>Unit Pabrik</span>
+                <span class="badge badge-sm font-semibold {{ $activeTab === 'pabrik' ? 'bg-secondary-content/20 text-secondary-content border-none' : 'badge-ghost' }}">
+                    {{ $totalPabrik }}
+                </span>
             </button>
         </div>
 
-        {{-- Filter Row --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 items-center">
-            {{-- Search --}}
-            <div class="sm:col-span-2 lg:col-span-1">
-                <x-mary-input wire:model.live.debounce.300ms="search"
-                    placeholder="Cari nama user / comp name..."
-                    icon="o-magnifying-glass" clearable />
-            </div>
-            {{-- Dept Filter --}}
-            <div>
-                <select wire:model.live="departmentFilter" class="select select-bordered select-sm w-full">
-                    <option value="">Semua Departemen</option>
-                    @foreach($departments as $dept)
-                        <option value="{{ $dept->id }}">{{ $dept->name }} ({{ $dept->code }})</option>
-                    @endforeach
-                </select>
-            </div>
-            {{-- Status Filter --}}
-            <div>
-                <select wire:model.live="statusFilter" class="select select-bordered select-sm w-full">
-                    <option value="all">Semua Status</option>
-                    <option value="completed">Sudah Di-maintenance</option>
-                    <option value="pending">Belum Di-maintenance</option>
-                </select>
-            </div>
-            {{-- Periode --}}
-            <div>
-                <input type="month" wire:model.live="selectedPeriod"
-                    class="input input-bordered input-sm w-full"
-                    title="Pilih Periode" />
-            </div>
-            {{-- Export --}}
-            <div>
-                <button wire:click="exportExcel" class="btn btn-success btn-sm gap-2 w-full">
-                    <x-mary-icon name="o-arrow-down-tray" class="w-4 h-4" />
-                    Export Excel
+        {{-- Periode Navigator --}}
+        <div class="flex items-center justify-between sm:justify-end gap-2">
+            @if($selectedPeriod !== date('Y-m'))
+                <button type="button" wire:click="setPeriodToday"
+                    class="btn btn-ghost btn-xs text-primary font-bold hover:bg-primary/10 transition-colors"
+                    title="Kembali ke bulan ini">
+                    Bulan Ini
+                </button>
+            @endif
+
+            <div class="inline-flex items-center bg-base-100 p-1 rounded-2xl border border-base-content/10 shadow-xs">
+                {{-- Tombol Bulan Sebelumnya --}}
+                <button type="button" wire:click="prevPeriod"
+                    class="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-base-content hover:bg-base-200/80 rounded-xl"
+                    title="Bulan sebelumnya">
+                    <x-mary-icon name="o-chevron-left" class="w-4 h-4" />
+                </button>
+
+                {{-- Display Bulan & Tahun (Klik untuk membuka picker) --}}
+                <div class="relative flex items-center px-3 py-1 rounded-xl hover:bg-base-200/60 transition-colors cursor-pointer group">
+                    <x-mary-icon name="o-calendar" class="w-4 h-4 text-primary mr-2 shrink-0 pointer-events-none group-hover:scale-110 transition-transform" />
+                    <span class="text-xs font-extrabold text-base-content whitespace-nowrap pointer-events-none tracking-wide">
+                        {{ $formattedPeriod }}
+                    </span>
+                    <input type="month" wire:model.live="selectedPeriod"
+                        class="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                        title="Klik untuk memilih bulan & tahun" />
+                </div>
+
+                {{-- Tombol Bulan Berikutnya --}}
+                <button type="button" wire:click="nextPeriod"
+                    class="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-base-content hover:bg-base-200/80 rounded-xl"
+                    title="Bulan berikutnya">
+                    <x-mary-icon name="o-chevron-right" class="w-4 h-4" />
                 </button>
             </div>
         </div>
     </div>
 
     {{-- ======================================================= --}}
-    {{-- BANNER: JADWAL AKTIF --}}
+    {{-- FILTER BAR CARD --}}
     {{-- ======================================================= --}}
-    @if($activeSchedule)
-        <div class="flex items-start sm:items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-4 py-3">
-            <x-mary-icon name="o-calendar-days" class="w-5 h-5 text-primary flex-shrink-0 mt-0.5 sm:mt-0" />
-            <div class="flex-1 min-w-0">
-                <div class="font-bold text-sm text-primary">Jadwal Aktif: {{ $activeSchedule->title }}</div>
-                <div class="text-xs opacity-70 mt-0.5">
-                    Frekuensi: <span class="font-semibold">{{ $activeSchedule->frequency_label }}</span>
-                    &bull; Berlaku untuk: <span class="font-semibold">{{ $activeSchedule->pc_location_label }}</span>
-                    @if($activeSchedule->target_day)
-                        &bull; Target: <span class="font-semibold">{{ $activeSchedule->target_day }}</span>
-                    @endif
-                </div>
+    <div class="bg-base-100 p-3.5 sm:p-4 rounded-2xl shadow-sm border border-base-content/5 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+        {{-- Search & Filters Group --}}
+        <div class="flex flex-wrap items-center gap-2.5 flex-1">
+            {{-- Search Box --}}
+            <div class="w-full sm:w-64">
+                <x-mary-input wire:model.live.debounce.300ms="search"
+                    placeholder="Cari user / comp name..."
+                    icon="o-magnifying-glass"
+                    clearable
+                    class="input-sm" />
             </div>
-            <a href="{{ route('routine-schedules') }}" class="btn btn-xs btn-outline btn-primary flex-shrink-0">Kelola Jadwal</a>
-        </div>
-    @else
-        <div class="flex items-center gap-3 bg-warning/10 border border-warning/20 rounded-2xl px-4 py-3">
-            <x-mary-icon name="o-exclamation-triangle" class="w-5 h-5 text-warning flex-shrink-0" />
-            <div class="flex-1 text-sm">
-                <span class="font-bold text-warning">Belum ada Routine Schedule aktif</span>
-                <span class="opacity-70"> untuk lokasi <strong>{{ ucfirst($activeTab) }}</strong>.</span>
-                Buat jadwal di menu
-                <a href="{{ route('routine-schedules') }}" class="underline text-primary font-semibold">Jadwal Rutin</a>
-                agar status due date PC bisa terpantau.
+
+            {{-- Department Filter --}}
+            <div class="w-full sm:w-44">
+                <select wire:model.live="departmentFilter" class="select select-bordered select-sm w-full font-medium">
+                    <option value="">Semua Departemen</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->id }}">{{ $dept->code }} - {{ $dept->name }}</option>
+                    @endforeach
+                </select>
             </div>
+
+            {{-- Status Filter --}}
+            <div class="w-full sm:w-52">
+                <select wire:model.live="statusFilter" class="select select-bordered select-sm w-full font-medium">
+                    <option value="all">Semua Status</option>
+                    <option value="completed">✅ Sudah Di-maintenance</option>
+                    <option value="pending">⏳ Belum Di-maintenance</option>
+                </select>
+            </div>
+
+            {{-- Toggle Excluded / Dikecualikan --}}
+            <button type="button" wire:click="$toggle('showExcluded')"
+                class="btn btn-sm gap-1.5 transition-all {{ $showExcluded ? 'btn-warning text-warning-content shadow-xs font-bold' : 'btn-ghost border border-base-content/10 text-base-content/70 hover:text-base-content hover:bg-base-200' }}"
+                title="{{ $showExcluded ? 'Sembunyikan user yang dikecualikan' : 'Tampilkan user yang dikecualikan dari PC Maintenance' }}">
+                <x-mary-icon name="{{ $showExcluded ? 'o-eye' : 'o-eye-slash' }}" class="w-4 h-4" />
+                <span class="text-xs">Dikecualikan</span>
+                @if($totalExcluded > 0)
+                    <span class="badge badge-xs {{ $showExcluded ? 'bg-warning-content/25 text-warning-content border-none' : 'badge-warning font-bold' }}">
+                        {{ $totalExcluded }}
+                    </span>
+                @endif
+            </button>
+
+            {{-- Reset Filter Button --}}
+            @if($search || $departmentFilter || $statusFilter !== 'all' || $showExcluded)
+                <button type="button" wire:click="resetFilters" class="btn btn-ghost btn-xs gap-1 text-xs text-error hover:bg-error/10" title="Reset filter">
+                    <x-mary-icon name="o-x-mark" class="w-3.5 h-3.5" />
+                    <span>Reset</span>
+                </button>
+            @endif
         </div>
-    @endif
+
+        {{-- Counter Info --}}
+        <div class="text-xs opacity-60 font-medium shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-base-content/5 text-right">
+            <span>Menampilkan <strong class="text-base-content font-bold">{{ $pemakais->total() }}</strong> user</span>
+        </div>
+    </div>
 
     {{-- ======================================================= --}}
     {{-- MAIN TABLE --}}
     {{-- ======================================================= --}}
-    <div class="bg-base-100 rounded-2xl shadow-md border border-base-content/5 overflow-hidden">
+    <div class="bg-base-100 rounded-2xl shadow-sm border border-base-content/5 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="table table-md w-full">
-                <thead class="bg-base-200/50">
+                <thead class="bg-base-200/50 text-xs uppercase tracking-wider text-base-content/70">
                     <tr>
-                        <th class="w-12">#</th>
-                        <th>User</th>
-                        <th class="whitespace-nowrap min-w-[140px]">Comp Name</th>
-                        <th>Dept</th>
-                        <th>Tanggal Maintenance</th>
-                        @if($activeSchedule)
-                            <th class="whitespace-nowrap">Jadwal Berikutnya</th>
-                        @endif
-                        <th>Kondisi & Notes</th>
-                        <th>Ttd User</th>
-                        <th class="text-right">Aksi</th>
+                        <th class="w-12 text-center font-bold">#</th>
+                        <th class="min-w-[160px] font-bold">User</th>
+                        <th class="whitespace-nowrap min-w-[140px] font-bold">Comp Name</th>
+                        <th class="font-bold">Dept</th>
+                        <th class="whitespace-nowrap min-w-[130px] font-bold">Tanggal</th>
+                        <th class="min-w-[180px] font-bold">Notes</th>
+                        <th class="min-w-[120px] font-bold">Ttd User</th>
+                        <th class="text-right font-bold min-w-[130px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($devices as $device)
+                    @forelse($pemakais as $pemakai)
                         @php
-                            $record    = $device->maintenanceRecords->first();
+                            // Ambil barang komputer pertama milik pemakai ini
+                            $barang    = $pemakai->barangs->first();
+                            $record    = $barang?->pcMaintenances->first();
                             $isDone    = $record !== null;
-                            $dueInfo   = $dueDateMap[$device->id] ?? null;
-                            $rowHighlight = ($dueInfo && $dueInfo['is_overdue']) ? 'bg-error/5' : '';
+                            $hasPC     = $barang !== null;
+                            $isExcluded = $pemakai->exclude_pc_maintenance;
                         @endphp
-                        <tr class="hover {{ $rowHighlight }}">
-                            <td class="text-xs opacity-50 font-mono">{{ $devices->firstItem() + $loop->index }}</td>
+                        <tr class="hover {{ $isDone ? '' : ($hasPC ? 'opacity-85' : 'opacity-60') }} {{ $isExcluded ? 'bg-warning/5' : '' }}">
+                            <td class="text-xs opacity-50 font-mono text-center">{{ $pemakais->firstItem() + $loop->index }}</td>
+
+                            {{-- User / Pemakai --}}
                             <td>
-                                <div class="font-semibold text-sm">{{ $device->user_name }}</div>
-                                <div class="text-xs opacity-50">{{ $device->device_type }}</div>
+                                <div class="font-semibold text-sm {{ $isExcluded ? 'line-through opacity-40' : '' }}">{{ $pemakai->nama }}</div>
+                                @if($isExcluded)
+                                    <span class="badge badge-warning badge-xs gap-1 mt-0.5">
+                                        <x-mary-icon name="o-minus-circle" class="w-2.5 h-2.5" />
+                                        Dikecualikan
+                                    </span>
+                                @endif
                             </td>
+
+                            {{-- Comp Name --}}
                             <td class="whitespace-nowrap">
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-base-200/80 border border-base-content/10 font-mono text-xs font-semibold tracking-wide text-base-content whitespace-nowrap shadow-xs">
-                                    <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary/80 shrink-0" />
-                                    <span>{{ $device->comp_name }}</span>
-                                </div>
+                                @if($hasPC)
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-base-200/80 border border-base-content/10 font-mono text-xs font-extrabold tracking-wide text-primary whitespace-nowrap shadow-xs">
+                                        <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 text-primary shrink-0" />
+                                        <span>{{ $pemakai->comp_name ?: $barang->nama_barang }}</span>
+                                    </div>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-xs opacity-40 italic">
+                                        <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5 shrink-0" />
+                                        Belum ada komputer
+                                    </span>
+                                @endif
                             </td>
+
+                            {{-- Dept --}}
                             <td>
-                                @if($device->department)
-                                    <span class="badge badge-ghost badge-sm">{{ $device->department->code }}</span>
+                                @if($pemakai->department)
+                                    <span class="badge badge-ghost badge-sm font-semibold">{{ $pemakai->department->code }}</span>
                                 @else
                                     <span class="text-xs opacity-30">-</span>
                                 @endif
                             </td>
+
+                            {{-- Tanggal Maintenance --}}
                             <td>
                                 @if($isDone)
-                                    <div class="text-sm font-semibold text-success">
-                                        {{ $record->maintenance_date->format('d/m/Y') }}
+                                    <div class="text-sm font-semibold text-success flex items-center gap-1">
+                                        <x-mary-icon name="o-check-circle" class="w-4 h-4 shrink-0 text-success" />
+                                        <span>{{ $record->maintenance_date->format('d/m/Y') }}</span>
                                     </div>
-                                    <div class="text-xs opacity-50">{{ $record->technician->name ?? 'Unknown' }}</div>
-                                @else
+                                    <div class="text-[11px] opacity-50">{{ $record->technician->name ?? 'Teknisi IT' }}</div>
+                                @elseif($hasPC)
                                     <span class="badge badge-warning badge-sm gap-1">
                                         <x-mary-icon name="o-clock" class="w-3 h-3" />
                                         Belum
                                     </span>
+                                @else
+                                    <span class="text-xs opacity-30">-</span>
                                 @endif
                             </td>
-                            @if($activeSchedule && $dueInfo)
-                                <td class="whitespace-nowrap">
-                                    @if($dueInfo['never_maintained'])
-                                        <span class="badge badge-error badge-sm gap-1">
-                                            <x-mary-icon name="o-exclamation-circle" class="w-3 h-3" />
-                                            Belum Pernah
-                                        </span>
-                                    @elseif($dueInfo['is_overdue'])
-                                        <div class="text-xs font-bold text-error">Overdue</div>
-                                        <div class="text-xs text-error/70">{{ abs($dueInfo['days_left']) }} hari lalu</div>
-                                    @elseif($dueInfo['is_today'])
-                                        <span class="badge badge-warning badge-sm gap-1 animate-pulse">
-                                            <x-mary-icon name="o-bell-alert" class="w-3 h-3" />
-                                            Hari Ini!
-                                        </span>
-                                    @else
-                                        <div class="text-xs font-semibold text-success">{{ $dueInfo['next_due']->format('d/m/Y') }}</div>
-                                        <div class="text-xs opacity-50">{{ $dueInfo['days_left'] }} hari lagi</div>
-                                    @endif
-                                </td>
-                            @endif
+
+                            {{-- Notes (Kondisi + Catatan) --}}
                             <td class="max-w-xs">
                                 @if($isDone)
                                     @php
                                         $condColors = [
-                                            'good' => 'badge-success',
-                                            'needs_attention' => 'badge-warning',
-                                            'critical' => 'badge-error',
+                                            'good'             => 'badge-success',
+                                            'needs_attention'  => 'badge-warning',
+                                            'critical'         => 'badge-error',
                                         ];
                                         $condLabels = [
-                                            'good' => 'Baik',
-                                            'needs_attention' => 'Perlu Perhatian',
-                                            'critical' => 'Kritis',
+                                            'good'             => 'Baik',
+                                            'needs_attention'  => 'Perlu Perhatian',
+                                            'critical'         => 'Kritis',
                                         ];
                                         $condColor = $condColors[$record->overall_condition] ?? 'badge-ghost';
                                         $condLabel = $condLabels[$record->overall_condition] ?? $record->overall_condition;
                                     @endphp
-                                    <span class="badge {{ $condColor }} badge-sm mb-1">{{ $condLabel }}</span>
+                                    <span class="badge {{ $condColor }} badge-sm mb-0.5">{{ $condLabel }}</span>
                                     @if($record->notes)
                                         <div class="text-xs opacity-60 line-clamp-2">{{ $record->notes }}</div>
                                     @endif
@@ -258,11 +307,13 @@
                                     <span class="text-xs opacity-30">-</span>
                                 @endif
                             </td>
+
+                            {{-- Ttd User --}}
                             <td>
                                 @if($isDone && $record->is_user_signed)
                                     <div class="flex items-center gap-1 text-success text-xs font-semibold">
-                                        <x-mary-icon name="o-check-badge" class="w-4 h-4" />
-                                        {{ $record->user_sign_name ?: 'Sudah TTD' }}
+                                        <x-mary-icon name="o-check-badge" class="w-4 h-4 shrink-0" />
+                                        <span>{{ $record->user_sign_name ?: 'Sudah TTD' }}</span>
                                     </div>
                                 @elseif($isDone)
                                     <span class="text-xs opacity-40">Belum TTD</span>
@@ -270,43 +321,62 @@
                                     <span class="text-xs opacity-30">-</span>
                                 @endif
                             </td>
+
+                            {{-- Aksi --}}
                             <td class="text-right">
-                                <div class="flex items-center justify-end gap-1">
-                                    {{-- Maintenance Checklist Button --}}
-                                    <button wire:click="openMaintenanceModal({{ $device->id }})"
-                                        class="btn btn-sm gap-1 {{ $isDone ? 'btn-success btn-outline' : 'btn-primary' }}"
-                                        title="{{ $isDone ? 'Edit Maintenance' : 'Input Maintenance' }}">
-                                        <x-mary-icon name="{{ $isDone ? 'o-pencil-square' : 'o-clipboard-document-check' }}" class="w-4 h-4" />
-                                        <span class="hidden sm:inline">{{ $isDone ? 'Edit' : 'Input' }}</span>
-                                    </button>
-                                    {{-- History Button --}}
-                                    <button wire:click="openHistoryModal({{ $device->id }})"
-                                        class="btn btn-ghost btn-sm btn-square"
-                                        title="Riwayat PC">
-                                        <x-mary-icon name="o-clock" class="w-4 h-4 text-info" />
-                                    </button>
-                                    {{-- Edit PC Button --}}
-                                    <button wire:click="openEditDeviceModal({{ $device->id }})"
-                                        class="btn btn-ghost btn-sm btn-square"
-                                        title="Edit Data PC">
-                                        <x-mary-icon name="o-cog-6-tooth" class="w-4 h-4 text-warning" />
-                                    </button>
-                                    {{-- Delete --}}
-                                    <button wire:click="deleteDevice({{ $device->id }})"
-                                        wire:confirm="Hapus perangkat {{ $device->comp_name }} ({{ $device->user_name }})? Semua riwayat maintenance juga akan dihapus."
-                                        class="btn btn-ghost btn-sm btn-square text-error"
-                                        title="Hapus">
-                                        <x-mary-icon name="o-trash" class="w-4 h-4" />
-                                    </button>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    @if($isExcluded)
+                                        {{-- Restore button --}}
+                                        <button wire:click="restoreToMaintenance({{ $pemakai->id }})"
+                                            wire:confirm="Munculkan kembali {{ $pemakai->nama }} di PC Maintenance?"
+                                            class="btn btn-outline btn-warning btn-sm gap-1"
+                                            title="Munculkan kembali">
+                                            <x-mary-icon name="o-arrow-uturn-left" class="w-4 h-4" />
+                                            <span class="hidden sm:inline">Restore</span>
+                                        </button>
+                                    @elseif($hasPC)
+                                        {{-- Maintenance Checklist Button --}}
+                                        <button wire:click="openMaintenanceModal({{ $barang->id }})"
+                                            class="btn btn-sm gap-1 {{ $isDone ? 'btn-success btn-outline' : 'btn-primary' }}"
+                                            title="{{ $isDone ? 'Edit Maintenance' : 'Catat Maintenance' }}">
+                                            <x-mary-icon name="{{ $isDone ? 'o-pencil-square' : 'o-clipboard-document-check' }}" class="w-4 h-4" />
+                                            <span class="hidden sm:inline">{{ $isDone ? 'Edit' : 'Catat' }}</span>
+                                        </button>
+                                        {{-- History Button --}}
+                                        <button wire:click="openHistoryModal({{ $barang->id }})"
+                                            class="btn btn-ghost btn-sm btn-square"
+                                            title="Riwayat Pemeliharaan PC">
+                                            <x-mary-icon name="o-clock" class="w-4 h-4 text-info" />
+                                        </button>
+                                    @else
+                                        {{-- No PC yet: link to add barang --}}
+                                        <a href="{{ route('barangs') }}"
+                                            class="btn btn-ghost btn-sm gap-1 opacity-60"
+                                            title="Tambah komputer untuk user ini">
+                                            <x-mary-icon name="o-plus-circle" class="w-4 h-4" />
+                                            <span class="hidden sm:inline text-xs">Tambah PC</span>
+                                        </a>
+                                    @endif
+
+                                    {{-- Tombol Hapus dari PC Maintenance (hanya muncul jika belum di-exclude) --}}
+                                    @if(!$isExcluded)
+                                        <button wire:click="excludeFromMaintenance({{ $pemakai->id }})"
+                                            wire:confirm="Hapus {{ $pemakai->nama }} dari daftar PC Maintenance? (User tetap ada di data Pemakai, bisa dikembalikan kapan saja)"
+                                            class="btn btn-ghost btn-sm btn-square text-base-content/40 hover:text-error hover:bg-error/10 transition-colors"
+                                            title="Hapus dari PC Maintenance">
+                                            <x-mary-icon name="o-trash" class="w-4 h-4" />
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-12">
-                                <div class="flex flex-col items-center gap-2 opacity-40">
-                                    <x-mary-icon name="o-computer-desktop" class="w-12 h-12" />
-                                    <span>Tidak ada data perangkat ditemukan</span>
+                                <div class="flex flex-col items-center gap-2 opacity-50">
+                                    <x-mary-icon name="o-users" class="w-12 h-12 text-base-content/40" />
+                                    <span class="font-semibold text-sm">Tidak ada user yang sesuai dengan filter</span>
+                                    <p class="text-xs opacity-60">Pastikan data Pemakai sudah terdaftar di departemen yang sesuai.</p>
                                 </div>
                             </td>
                         </tr>
@@ -315,220 +385,277 @@
             </table>
         </div>
         <div class="px-5 py-4 border-t border-base-content/10 bg-base-200/30">
-            {{ $devices->links('vendor.pagination.tailwind') }}
+            {{ $pemakais->links('vendor.pagination.tailwind') }}
         </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- MODAL: INPUT / EDIT MAINTENANCE -->
-    <!-- ======================================================= -->
-    <x-mary-modal wire:model="showMaintenanceModal" class="backdrop-blur-sm" box-class="max-w-2xl p-4 sm:p-5 w-full max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between pb-3 mb-3 border-b border-base-content/10 pr-8">
-            <div class="flex items-center gap-2.5">
-                <div class="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
-                    <x-mary-icon name="o-clipboard-document-check" class="w-5 h-5" />
-                </div>
-                <div>
-                    <h3 class="font-bold text-base sm:text-lg leading-tight">Form Maintenance PC</h3>
-                    <div class="flex items-center gap-2 mt-0.5 text-xs text-base-content/70">
-                        <span class="font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">{{ $maintCompName }}</span>
-                        <span>&bull;</span>
-                        <span>{{ $maintUserName }}</span>
+    {{-- ======================================================= --}}
+    {{-- MODAL: INPUT / EDIT MAINTENANCE --}}
+    {{-- ======================================================= --}}
+    <x-mary-modal wire:model="showMaintenanceModal" class="backdrop-blur-sm" box-class="max-w-2xl w-full max-h-[92vh] overflow-y-auto !p-0">
+        {{-- Modal Header --}}
+        <div class="sticky top-0 z-10 bg-base-100 border-b border-base-content/10 px-5 py-4 flex items-center justify-between">
+            <div>
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <div class="bg-primary/10 rounded-lg p-1.5 text-primary">
+                        <x-mary-icon name="o-clipboard-document-check" class="w-5 h-5" />
                     </div>
+                    <span>Form Maintenance PC</span>
+                </h3>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 font-mono text-xs font-bold text-primary">
+                        <x-mary-icon name="o-computer-desktop" class="w-3.5 h-3.5" />
+                        {{ $maintCompName }}
+                    </span>
+                    <span class="text-xs opacity-75 font-medium">{{ $maintNamaBarang }}</span>
+                    <span class="text-xs opacity-50">• Pemakai: {{ $maintUserName }}</span>
+                    @if($maintHasExisting)
+                        <span class="badge badge-success badge-sm gap-1 ml-auto">
+                            <x-mary-icon name="o-check-circle" class="w-3 h-3" />
+                            Sudah diisi
+                        </span>
+                    @else
+                        <span class="badge badge-warning badge-sm gap-1 ml-auto">
+                            <x-mary-icon name="o-clock" class="w-3 h-3" />
+                            Belum diisi
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <form wire:submit="saveMaintenance" class="space-y-3">
-            {{-- Row 1: Tanggal & Periode --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Tanggal Pelaksanaan *</label>
-                    <input type="date" wire:model="maintDate" class="input input-bordered w-full input-sm" />
-                </div>
-                <div>
-                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Periode (YYYY-MM) *</label>
-                    <input type="month" wire:model="maintPeriod" class="input input-bordered w-full input-sm" />
-                </div>
+        <form wire:submit="saveMaintenance" class="px-5 py-4 space-y-5">
+            {{-- Info Work Log otomatis --}}
+            <div class="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-primary flex items-center gap-2.5">
+                <x-mary-icon name="o-information-circle" class="w-5 h-5 shrink-0" />
+                <span>Hasil checklist maintenance ini akan <strong>otomatis tercatat di Work Log harian IT</strong>.</span>
             </div>
 
-            {{-- Checklist --}}
-            <div class="bg-base-200/50 rounded-xl p-3 border border-base-content/5">
-                <div class="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2">Checklist Pemeriksaan Standar</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:text-sm">
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.clean_dust" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Pembersihan debu & casing</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.check_thermal" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Pengecekan & ganti pasta thermal</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.antivirus_scan" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Scan & update antivirus</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.disk_cleanup" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Disk cleanup & hapus temp file</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.os_update" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Update OS / Windows Update</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.network_test" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Tes koneksi jaringan</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <input type="checkbox" wire:model="checklist.backup_data" class="checkbox checkbox-success checkbox-sm" />
-                        <span>Pengecekan / backup data penting</span>
-                    </label>
-                </div>
-            </div>
-
-            {{-- Row: Kondisi & Catatan + User Sign --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {{-- Kiri: Kondisi & Verifikasi User --}}
-                <div class="space-y-2.5">
+            {{-- Section: Tanggal & Periode --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider opacity-60 mb-3 flex items-center gap-2">
+                    <x-mary-icon name="o-calendar-days" class="w-4 h-4 text-primary" />
+                    Jadwal Pelaksanaan
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Kondisi PC</label>
-                        <select wire:model="maintCondition" class="select select-bordered w-full select-sm">
-                            <option value="good">Baik</option>
-                            <option value="needs_attention">Perlu Perhatian</option>
-                            <option value="critical">Kritis</option>
+                        <label class="label py-1"><span class="label-text text-xs font-semibold">Tanggal Pelaksanaan *</span></label>
+                        <input type="date" wire:model="maintDate" class="input input-bordered w-full input-sm focus:input-primary font-mono" />
+                    </div>
+                    <div>
+                        <label class="label py-1"><span class="label-text text-xs font-semibold">Periode (Bulan) *</span></label>
+                        <input type="month" wire:model="maintPeriod" class="input input-bordered w-full input-sm focus:input-primary font-mono" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider my-0"></div>
+
+            {{-- Section: Checklist Standar --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider opacity-60 mb-3 flex items-center gap-2">
+                    <x-mary-icon name="o-clipboard-document-list" class="w-4 h-4 text-primary" />
+                    Checklist Pemeriksaan Standar
+                </h4>
+                <div class="bg-base-200/40 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-4">
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors">
+                        <input type="checkbox" wire:model="checklist.clean_dust" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Pembersihan debu & casing fisik</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors">
+                        <input type="checkbox" wire:model="checklist.check_thermal" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Pengecekan / ganti pasta thermal</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors">
+                        <input type="checkbox" wire:model="checklist.antivirus_scan" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Scan & update antivirus</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors">
+                        <input type="checkbox" wire:model="checklist.disk_cleanup" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Disk cleanup & pembersihan temp files</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors">
+                        <input type="checkbox" wire:model="checklist.os_update" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Update OS / Windows Update</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors">
+                        <input type="checkbox" wire:model="checklist.network_test" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Tes koneksi jaringan LAN / WiFi</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-base-300/50 rounded-lg px-2 py-1.5 transition-colors sm:col-span-2">
+                        <input type="checkbox" wire:model="checklist.backup_data" class="checkbox checkbox-success checkbox-sm" />
+                        <span class="text-sm">Pengecekan / backup data penting user</span>
+                    </label>
+                </div>
+            </div>
+
+            {{-- Section: Kondisi & Notes --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider opacity-60 mb-3 flex items-center gap-2">
+                    <x-mary-icon name="o-document-text" class="w-4 h-4 text-primary" />
+                    Kondisi & Catatan Tindakan
+                </h4>
+                <div class="bg-base-200/40 rounded-xl p-4 space-y-3">
+                    <div>
+                        <label class="label py-0.5"><span class="label-text text-xs font-semibold">Kondisi Keseluruhan PC</span></label>
+                        <select wire:model="maintCondition" class="select select-bordered w-full select-sm focus:select-primary">
+                            <option value="good">✅ Baik (Normal)</option>
+                            <option value="needs_attention">⚠️ Perlu Perhatian (Ada Catatan)</option>
+                            <option value="critical">🔴 Kritis (Perlu Tindakan Lanjut)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Nama Pemakai / PIC</label>
-                        <input type="text" wire:model="maintUserSignName"
-                            class="input input-bordered w-full input-sm"
-                            placeholder="Nama user pemakai" />
+                        <label class="label py-0.5"><span class="label-text text-xs font-semibold">Catatan / Temuan Teknisi</span></label>
+                        <textarea wire:model="maintNotes" rows="2"
+                            class="textarea textarea-bordered w-full text-sm focus:textarea-primary leading-relaxed"
+                            placeholder="Catatan tambahan teknisi..."></textarea>
                     </div>
-                    <label class="flex items-center gap-2 cursor-pointer pt-0.5">
-                        <input type="checkbox" wire:model="maintIsUserSigned" class="checkbox checkbox-primary checkbox-sm" />
-                        <span class="text-xs font-medium opacity-80">Sudah konfirmasi / verifikasi pemakai</span>
-                    </label>
-                </div>
-
-                {{-- Kanan: Catatan / Temuan --}}
-                <div class="flex flex-col">
-                    <label class="label text-[11px] font-bold uppercase tracking-wider opacity-70 py-1">Catatan / Temuan</label>
-                    <textarea wire:model="maintNotes" rows="4"
-                        class="textarea textarea-bordered w-full text-xs sm:text-sm flex-1 resize-none"
-                        placeholder="Catatan hasil pengecekan, sparepart yang diganti, dll..."></textarea>
                 </div>
             </div>
 
-            {{-- Footer Buttons --}}
-            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-base-content/10">
+            <div class="divider my-0"></div>
+
+            {{-- Section: Verifikasi Pemakai --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider opacity-60 mb-3 flex items-center gap-2">
+                    <x-mary-icon name="o-user-circle" class="w-4 h-4 text-primary" />
+                    Verifikasi Pemakai
+                </h4>
+                <div class="bg-base-200/40 rounded-xl p-4 space-y-3">
+                    <div>
+                        <label class="label py-0.5"><span class="label-text text-xs font-semibold">Nama Pemakai / PIC</span></label>
+                        <input type="text" wire:model="maintUserSignName"
+                            class="input input-bordered w-full input-sm focus:input-primary"
+                            placeholder="Nama user yang menerima maintenance" />
+                    </div>
+                    <label class="flex items-center gap-3 cursor-pointer bg-base-300/30 hover:bg-base-300/60 rounded-lg px-3 py-2.5 transition-colors">
+                        <input type="checkbox" wire:model="maintIsUserSigned" class="checkbox checkbox-primary checkbox-sm" />
+                        <span class="text-sm font-medium">Sudah konfirmasi / tanda tangan (TTD) pemakai</span>
+                    </label>
+                </div>
+            </div>
+
+            {{-- Footer Actions --}}
+            <div class="sticky bottom-0 bg-base-100 border-t border-base-content/10 pt-4 pb-1 -mx-5 px-5 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                     @if($maintHasExisting)
-                        <button type="button" wire:click="deleteCurrentMaintenance"
-                            wire:confirm="Hapus status maintenance untuk periode ini? Perangkat ini akan kembali berstatus Belum Di-maintenance."
-                            class="btn btn-error btn-outline btn-xs sm:btn-sm gap-1 w-full sm:w-auto">
-                            <x-mary-icon name="o-trash" class="w-3.5 h-3.5" />
-                            Hapus Status Maintenance
+                        <button type="button"
+                            wire:click="deleteCurrentMaintenance"
+                            wire:confirm="Reset status maintenance {{ $maintCompName }} untuk periode ini? Data checklist dan Work Log terkait akan dihapus."
+                            class="btn btn-outline btn-warning btn-sm gap-2 w-full sm:w-auto">
+                            <x-mary-icon name="o-arrow-path" class="w-4 h-4" />
+                            Reset Maintenance
                         </button>
                     @endif
                 </div>
-                <div class="flex items-center justify-end gap-2 w-full sm:w-auto">
-                    <button type="button" wire:click="$set('showMaintenanceModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto">
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button type="button" wire:click="$set('showMaintenanceModal', false)" class="btn btn-ghost btn-sm flex-1 sm:flex-initial">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-8 shadow-md flex-1 sm:flex-initial gap-2">
                         <x-mary-icon name="o-check" class="w-4 h-4" />
-                        Simpan
+                        Simpan & Masuk Work Log
                     </button>
                 </div>
             </div>
         </form>
     </x-mary-modal>
 
-    <!-- ======================================================= -->
-    <!-- MODAL: HISTORY / PC HEALTH HISTORY -->
-    <!-- ======================================================= -->
+    {{-- ======================================================= --}}
+    {{-- MODAL: PC HEALTH HISTORY --}}
+    {{-- ======================================================= --}}
     <x-mary-modal wire:model="showHistoryModal" class="backdrop-blur-sm" box-class="max-w-2xl p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
-        @if($historyDevice)
+        @if($historyBarang)
             <h3 class="font-bold text-base sm:text-lg mb-1 flex items-center gap-2">
                 <x-mary-icon name="o-clock" class="text-info w-6 h-6 flex-shrink-0" />
-                <span>PC Health History</span>
+                <span>Riwayat Pemeliharaan PC (Health History)</span>
             </h3>
-            <div class="flex items-center gap-3 mb-4 bg-base-200/50 rounded-xl p-3">
-                <div class="bg-primary/10 rounded-lg p-2 flex-shrink-0">
-                    <x-mary-icon name="o-computer-desktop" class="w-6 h-6 text-primary" />
+            <div class="flex items-center gap-3 mb-4 bg-base-200/50 rounded-xl p-3 border border-base-content/5">
+                <div class="bg-primary/10 rounded-lg p-2 flex-shrink-0 text-primary">
+                    <x-mary-icon name="o-computer-desktop" class="w-6 h-6" />
                 </div>
                 <div class="min-w-0">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-base-300/70 font-bold font-mono text-sm tracking-wide text-base-content border border-base-content/10 truncate">
-                        <x-mary-icon name="o-computer-desktop" class="w-4 h-4 text-primary flex-shrink-0" />
-                        <span class="truncate">{{ $historyDevice->comp_name }}</span>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-base-300/70 font-bold font-mono text-sm tracking-wide text-primary border border-base-content/10 truncate">
+                        <span>{{ $historyBarang->pemakai?->comp_name ?: $historyBarang->nama_barang }}</span>
                     </div>
-                    <div class="text-xs sm:text-sm opacity-70 mt-1 truncate">{{ $historyDevice->user_name }} &mdash; {{ $historyDevice->department->name ?? '-' }}</div>
-                    <span class="badge badge-sm badge-ghost capitalize mt-1">{{ $historyDevice->location }}</span>
+                    <div class="text-xs sm:text-sm font-medium mt-1 truncate">{{ $historyBarang->nama_barang }}</div>
+                    <div class="text-xs opacity-60 mt-0.5 truncate">
+                        Pemakai: {{ $historyBarang->pemakai?->nama ?: 'Tanpa Pemakai' }}
+                        @if($historyBarang->pemakai?->department)
+                            — Divisi {{ $historyBarang->pemakai->department->name }} ({{ $historyBarang->pemakai->department->code }})
+                        @endif
+                    </div>
                 </div>
             </div>
 
-            @if($historyDevice->maintenanceRecords->isEmpty())
+            @if($historyBarang->pcMaintenances->isEmpty())
                 <div class="text-center py-8 opacity-40">
                     <x-mary-icon name="o-clipboard-document" class="w-12 h-12 mx-auto mb-2" />
                     <p class="text-sm">Belum ada riwayat maintenance untuk perangkat ini</p>
                 </div>
             @else
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
-                    @foreach($historyDevice->maintenanceRecords as $rec)
+                    @foreach($historyBarang->pcMaintenances as $rec)
                         @php
-                            $condColors = ['good' => 'success', 'needs_attention' => 'warning', 'critical' => 'error'];
-                            $condColor = $condColors[$rec->overall_condition] ?? 'ghost';
-                            $condIcons = ['good' => 'o-check-circle', 'needs_attention' => 'o-exclamation-triangle', 'critical' => 'o-x-circle'];
-                            $condIcon = $condIcons[$rec->overall_condition] ?? 'o-circle-stack';
-                            $checklist = $rec->checklist_items ?? [];
-                            $checklistLabels = [
-                                'clean_dust' => 'Pembersihan Debu',
-                                'check_thermal' => 'Pasta Thermal',
-                                'antivirus_scan' => 'Scan Antivirus',
-                                'disk_cleanup' => 'Disk Cleanup',
-                                'os_update' => 'OS Update',
-                                'network_test' => 'Tes Jaringan',
-                                'backup_data' => 'Backup Data',
-                            ];
+                            $condBadge = match($rec->overall_condition) {
+                                'critical'        => 'badge-error',
+                                'needs_attention' => 'badge-warning',
+                                default           => 'badge-success',
+                            };
+                            $condText = match($rec->overall_condition) {
+                                'critical'        => 'Kritis',
+                                'needs_attention' => 'Perlu Perhatian',
+                                default           => 'Baik',
+                            };
                         @endphp
-                        <div class="border border-base-content/10 rounded-xl p-3 sm:p-4">
-                            <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                        <div class="bg-base-100 border border-base-content/10 rounded-xl p-3.5 space-y-2 shadow-xs">
+                            <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <x-mary-icon name="{{ $condIcon }}" class="w-5 h-5 text-{{ $condColor }}" />
-                                    <span class="font-bold text-xs sm:text-sm">{{ $rec->maintenance_date->format('d F Y') }}</span>
-                                    <span class="badge badge-{{ $condColor }} badge-sm text-xs">
-                                        {{ ['good'=>'Baik','needs_attention'=>'Perlu Perhatian','critical'=>'Kritis'][$rec->overall_condition] ?? $rec->overall_condition }}
-                                    </span>
+                                    <span class="font-bold text-sm">{{ $rec->maintenance_date->format('d M Y') }}</span>
+                                    <span class="badge badge-outline badge-xs font-mono">{{ $rec->period }}</span>
+                                    <span class="badge {{ $condBadge }} badge-xs">{{ $condText }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <div class="text-xs opacity-50 font-mono">{{ $rec->period }}</div>
-                                    <button type="button" wire:click="deleteRecord({{ $rec->id }})" wire:confirm="Hapus catatan riwayat maintenance ini?" class="btn btn-ghost btn-xs btn-square text-error" title="Hapus Riwayat Ini">
+                                    <span class="text-xs opacity-50">{{ $rec->technician->name ?? 'Teknisi' }}</span>
+                                    <button wire:click="deleteRecord({{ $rec->id }})" wire:confirm="Hapus catatan riwayat tanggal {{ $rec->maintenance_date->format('d/m/Y') }}?" class="btn btn-ghost btn-circle btn-xs text-error" title="Hapus catatan">
                                         <x-mary-icon name="o-trash" class="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </div>
-                            <div class="text-xs text-base-content/60 mb-2">
-                                Teknisi: <span class="font-semibold">{{ $rec->technician->name ?? 'Unknown' }}</span>
-                                @if($rec->is_user_signed)
-                                    &nbsp;|&nbsp; TTD: <span class="font-semibold text-success">{{ $rec->user_sign_name ?: 'Sudah' }}</span>
-                                @endif
-                            </div>
-                            @if(!empty($checklist))
-                                <div class="flex flex-wrap gap-1 mb-2">
-                                    @foreach($checklistLabels as $key => $label)
-                                        @if(isset($checklist[$key]))
-                                            <span class="badge badge-sm {{ $checklist[$key] ? 'badge-success' : 'badge-ghost opacity-40' }} gap-1 text-[11px]">
-                                                <x-mary-icon name="{{ $checklist[$key] ? 'o-check' : 'o-x-mark' }}" class="w-3 h-3" />
-                                                {{ $label }}
+
+                            @if(is_array($rec->checklist_items) && count($rec->checklist_items) > 0)
+                                @php
+                                    $labels = [
+                                        'clean_dust'     => 'Debu Fisik',
+                                        'check_thermal'  => 'Pasta Termal',
+                                        'antivirus_scan' => 'Antivirus',
+                                        'disk_cleanup'   => 'Disk Cleanup',
+                                        'os_update'      => 'Update OS',
+                                        'network_test'   => 'Jaringan',
+                                        'backup_data'    => 'Backup Data',
+                                    ];
+                                @endphp
+                                <div class="flex flex-wrap gap-1 text-[11px]">
+                                    @foreach($labels as $key => $lbl)
+                                        @if(!empty($rec->checklist_items[$key]))
+                                            <span class="badge badge-sm badge-success/15 text-success gap-1 border-0">
+                                                <x-mary-icon name="o-check" class="w-3 h-3" />
+                                                {{ $lbl }}
                                             </span>
                                         @endif
                                     @endforeach
                                 </div>
                             @endif
+
                             @if($rec->notes)
-                                <div class="text-xs bg-base-200 rounded-lg p-2 opacity-80 whitespace-pre-wrap">
+                                <div class="text-xs bg-base-200/50 rounded-lg p-2 opacity-80 whitespace-pre-wrap">
                                     {{ $rec->notes }}
                                 </div>
                             @endif
+
+                            <div class="text-[11px] opacity-60 flex items-center justify-between pt-1 border-t border-base-content/5">
+                                <span>Verifikasi: {{ $rec->user_sign_name ?: '-' }}</span>
+                                <span>{{ $rec->is_user_signed ? '✅ Sudah TTD' : '⏳ Belum TTD' }}</span>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -538,121 +665,6 @@
                 <button type="button" wire:click="$set('showHistoryModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Tutup</button>
             </div>
         @endif
-    </x-mary-modal>
-
-    <!-- ======================================================= -->
-    <!-- MODAL: TAMBAH / EDIT PERANGKAT PC -->
-    <!-- ======================================================= -->
-    <x-mary-modal wire:model="showDeviceModal" class="backdrop-blur-sm" box-class="max-w-lg p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
-        <h3 class="font-bold text-base sm:text-lg mb-3 sm:mb-4 flex items-center gap-2">
-            <x-mary-icon name="o-computer-desktop" class="text-warning w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-            <span>{{ $editingDeviceId ? 'Edit Data PC' : 'Tambah PC Baru' }}</span>
-        </h3>
-        <form wire:submit="saveDevice" class="space-y-3 sm:space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Nama User / Pemakai *</label>
-                    <x-mary-input wire:model="devUserName" placeholder="Contoh: Inge" />
-                </div>
-                <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Comp Name / Hostname *</label>
-                    <x-mary-input wire:model="devCompName" placeholder="Contoh: ACCT-01" />
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Departemen</label>
-                    <select wire:model="devDepartmentId" class="select select-bordered w-full select-sm">
-                        <option value="">-- Pilih --</option>
-                        @foreach($departments as $dept)
-                            <option value="{{ $dept->id }}">{{ $dept->name }} ({{ $dept->code }})</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Lokasi Unit *</label>
-                    <select wire:model="devLocation" class="select select-bordered w-full select-sm">
-                        <option value="kantor">Kantor</option>
-                        <option value="pabrik">Pabrik</option>
-                    </select>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Tipe Perangkat</label>
-                    <select wire:model="devDeviceType" class="select select-bordered w-full select-sm">
-                        <option value="PC Desktop">PC Desktop</option>
-                        <option value="Laptop">Laptop</option>
-                        <option value="Server">Server</option>
-                        <option value="All-in-One">All-in-One</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="label text-xs font-bold uppercase opacity-70">Status</label>
-                    <select wire:model="devStatus" class="select select-bordered w-full select-sm">
-                        <option value="active">Aktif</option>
-                        <option value="maintenance">Dalam Maintenance</option>
-                        <option value="broken">Rusak</option>
-                        <option value="inactive">Nonaktif</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <label class="label text-xs font-bold uppercase opacity-70">Sistem Operasi</label>
-                <x-mary-input wire:model="devOperatingSystem" placeholder="Contoh: Windows 10 Pro 64-bit" />
-            </div>
-            <div>
-                <label class="label text-xs font-bold uppercase opacity-70">Spesifikasi (RAM / Storage / Processor)</label>
-                <textarea wire:model="devSpecs" rows="2" class="textarea textarea-bordered w-full text-sm"
-                    placeholder="Intel Core i5-10400, RAM 8GB, SSD 256GB"></textarea>
-            </div>
-            <div>
-                <label class="label text-xs font-bold uppercase opacity-70">Catatan Tambahan</label>
-                <textarea wire:model="devNotes" rows="2" class="textarea textarea-bordered w-full text-sm"
-                    placeholder="PC milik bagian IT, ada UPS, dll..."></textarea>
-            </div>
-            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-4 border-t border-base-content/10">
-                <button type="button" wire:click="$set('showDeviceModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
-                <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md w-full sm:w-auto">
-                    <x-mary-icon name="o-check" class="w-4 h-4" />
-                    Simpan
-                </button>
-            </div>
-        </form>
-    </x-mary-modal>
-
-    <!-- ======================================================= -->
-    <!-- MODAL: IMPORT DATA -->
-    <!-- ======================================================= -->
-    <x-mary-modal wire:model="showImportModal" class="backdrop-blur-sm" box-class="max-w-lg p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto">
-        <h3 class="font-bold text-base sm:text-lg mb-2 flex items-center gap-2">
-            <x-mary-icon name="o-arrow-up-tray" class="text-info w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-            <span>Import Data PC (Copy Paste dari Excel)</span>
-        </h3>
-        <p class="text-xs sm:text-sm opacity-60 mb-3 sm:mb-4">
-            Copy kolom dari Excel (format: <code class="bg-base-200 px-1 rounded">User | Comp Name | Dept</code>), lalu paste ke kotak di bawah.
-        </p>
-        <div class="space-y-3">
-            <div>
-                <label class="label text-xs font-bold uppercase opacity-70">Lokasi Unit</label>
-                <select wire:model="importLocation" class="select select-bordered w-full select-sm">
-                    <option value="kantor">Kantor</option>
-                    <option value="pabrik">Pabrik</option>
-                </select>
-            </div>
-            <div>
-                <label class="label text-xs font-bold uppercase opacity-70">Data (satu baris per PC, pisah tab/koma)</label>
-                <textarea wire:model="importRawText" rows="8" class="textarea textarea-bordered w-full text-xs sm:text-sm font-mono"
-                    placeholder="Stephen&#9;DESKTOP-RU1L62Q&#9;IT&#10;Inge&#9;ACCT-01&#9;FA&#10;Lusi&#9;FIN-01&#9;FA"></textarea>
-            </div>
-            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-2">
-                <button type="button" wire:click="$set('showImportModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto">Batal</button>
-                <button wire:click="processImport" class="btn btn-info btn-sm px-6 w-full sm:w-auto">
-                    <x-mary-icon name="o-arrow-up-tray" class="w-4 h-4" />
-                    Proses Import
-                </button>
-            </div>
-        </div>
     </x-mary-modal>
 
 </div>
