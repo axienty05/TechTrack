@@ -29,6 +29,18 @@ class Index extends Component
     public bool $showModal = false;
     public ?int $barangId = null;
 
+    // History & Lifecycle modal state
+    public bool $showHistoryModal = false;
+    public ?int $historyBarangId = null;
+    public string $historyTab = 'all'; // 'all', 'mutasi', 'service'
+
+    public function openHistoryModal(int $id): void
+    {
+        $this->historyBarangId = $id;
+        $this->historyTab = 'all';
+        $this->showHistoryModal = true;
+    }
+
     // Excel Import state
     public bool $showImportModal = false;
     public $importFile = null;
@@ -450,6 +462,192 @@ class Index extends Component
         }
     }
 
+    public function getHistoryDataProperty(): ?array
+    {
+        if (!$this->historyBarangId) {
+            return null;
+        }
+
+        $barang = Barang::with([
+            'pemakai.department',
+            'dtMutasis.mtMutasi.supplier',
+            'services.serviceCenter',
+            'services.pemakai',
+            'serviceInternals.pemakai',
+            'pcMaintenances.technician',
+        ])->find($this->historyBarangId);
+
+        if (!$barang) {
+            return null;
+        }
+
+        $events = [];
+
+        // 1. Mutasi (Pembelian, Perpindahan, Penjualan)
+        foreach ($barang->dtMutasis as $dt) {
+            $mt = $dt->mtMutasi;
+            if (!$mt) continue;
+
+            $date = $mt->tgl_mutasi ? \Carbon\Carbon::parse($mt->tgl_mutasi) : $mt->created_at;
+
+            if ($mt->jenis_mutasi === 'pembelian') {
+                $events[] = [
+                    'date'        => $date,
+                    'type'        => 'pembelian',
+                    'category'    => 'mutasi',
+                    'title'       => 'Pembelian / Pengadaan Aset',
+                    'subtitle'    => 'No. Mutasi: ' . $mt->no_mutasi,
+                    'no_mutasi'   => $mt->no_mutasi,
+                    'mutasi_id'   => $mt->id,
+                    'link'        => route('mutasis', ['search' => $mt->no_mutasi]),
+                    'badge'       => 'Pembelian',
+                    'badge_class' => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                    'icon'        => 'o-shopping-cart',
+                    'icon_color'  => 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+                    'details'     => [
+                        'Supplier / Vendor' => $mt->supplier?->nama_supplier ?? 'Tanpa Supplier',
+                        'Harga Beli'        => $dt->harga ? 'Rp ' . number_format($dt->harga, 0, ',', '.') : 'Rp 0',
+                        'Keterangan'        => $mt->keterangan ?: '-',
+                    ],
+                ];
+            } elseif ($mt->jenis_mutasi === 'perpindahan') {
+                $pemakaiLama = \App\Models\Pemakai::find($dt->pemakai_lama)?->nama ?? 'Gudang / Tanpa Pemakai';
+                $pemakaiBaru = \App\Models\Pemakai::find($dt->pemakai_baru)?->nama ?? 'Tanpa Pemakai';
+
+                $events[] = [
+                    'date'        => $date,
+                    'type'        => 'perpindahan',
+                    'category'    => 'mutasi',
+                    'title'       => 'Perpindahan Pemakai',
+                    'subtitle'    => 'No. Mutasi: ' . $mt->no_mutasi,
+                    'no_mutasi'   => $mt->no_mutasi,
+                    'mutasi_id'   => $mt->id,
+                    'link'        => route('mutasis', ['search' => $mt->no_mutasi]),
+                    'badge'       => 'Perpindahan',
+                    'badge_class' => 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+                    'icon'        => 'o-arrows-right-left',
+                    'icon_color'  => 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+                    'details'     => [
+                        'Dari Pemakai'    => $pemakaiLama,
+                        'Ke Pemakai Baru' => $pemakaiBaru,
+                        'Keterangan'      => $mt->keterangan ?: '-',
+                    ],
+                ];
+            } elseif ($mt->jenis_mutasi === 'penjualan') {
+                $events[] = [
+                    'date'        => $date,
+                    'type'        => 'penjualan',
+                    'category'    => 'mutasi',
+                    'title'       => 'Penjualan / Disposal Aset',
+                    'subtitle'    => 'No. Mutasi: ' . $mt->no_mutasi,
+                    'no_mutasi'   => $mt->no_mutasi,
+                    'mutasi_id'   => $mt->id,
+                    'link'        => route('mutasis', ['search' => $mt->no_mutasi]),
+                    'badge'       => 'Penjualan',
+                    'badge_class' => 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+                    'icon'        => 'o-banknotes',
+                    'icon_color'  => 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+                    'details'     => [
+                        'Harga Jual' => $dt->harga ? 'Rp ' . number_format($dt->harga, 0, ',', '.') : 'Rp 0',
+                        'Keterangan' => $mt->keterangan ?: 'Pelepasan aset IT',
+                    ],
+                ];
+            }
+        }
+
+        // 2. Service Internal IT
+        foreach ($barang->serviceInternals as $si) {
+            $date = $si->tgl_service ? \Carbon\Carbon::parse($si->tgl_service) : $si->created_at;
+            $events[] = [
+                'date'        => $date,
+                'type'        => 'service_internal',
+                'category'    => 'service',
+                'title'       => 'Service Internal IT',
+                'subtitle'    => 'Pengerjaan Tim Internal IT',
+                'badge'       => 'Service Internal',
+                'badge_class' => 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                'icon'        => 'o-wrench-screwdriver',
+                'icon_color'  => 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+                'details'     => [
+                    'Pemakai Saat Service' => $si->pemakai?->nama ?? '-',
+                    'Tgl Mulai'            => $si->tgl_service ? $si->tgl_service->format('d/m/Y') : '-',
+                    'Tgl Selesai'          => $si->tgl_selesai ? $si->tgl_selesai->format('d/m/Y') : 'Sedang dalam pengerjaan',
+                    'Deskripsi Kerusakan'  => $si->kerusakan ?: '-',
+                ],
+            ];
+        }
+
+        // 3. Service Eksternal (Vendor)
+        foreach ($barang->services as $se) {
+            $date = $se->tgl_service ? \Carbon\Carbon::parse($se->tgl_service) : $se->created_at;
+            $events[] = [
+                'date'        => $date,
+                'type'        => 'service_eksternal',
+                'category'    => 'service',
+                'title'       => 'Service Eksternal Vendor',
+                'subtitle'    => 'Surat Jalan: ' . ($se->no_sj ?: '-'),
+                'badge'       => 'Service Eksternal',
+                'badge_class' => 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+                'icon'        => 'o-building-storefront',
+                'icon_color'  => 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+                'details'     => [
+                    'Vendor / Service Center' => $se->serviceCenter?->nama_service ?? '-',
+                    'Pemakai'                 => $se->pemakai?->nama ?? '-',
+                    'Biaya Perbaikan'         => $se->biaya ? 'Rp ' . number_format($se->biaya, 0, ',', '.') : 'Rp 0',
+                    'Gejala Kerusakan'        => $se->kerusakan ?: '-',
+                    'Tgl Kirim'               => $se->tgl_service ? $se->tgl_service->format('d/m/Y') : '-',
+                    'Tgl Kembali'             => $se->tgl_selesai ? $se->tgl_selesai->format('d/m/Y') : 'Masih di vendor',
+                ],
+            ];
+        }
+
+        // 4. PC Maintenance Rutin (jika ada)
+        foreach ($barang->pcMaintenances as $pm) {
+            $date = $pm->maintenance_date ? \Carbon\Carbon::parse($pm->maintenance_date) : $pm->created_at;
+            $events[] = [
+                'date'        => $date,
+                'type'        => 'pc_maintenance',
+                'category'    => 'service',
+                'title'       => 'Maintenance PC Rutin',
+                'subtitle'    => 'Periode: ' . ($pm->period ?? '-'),
+                'badge'       => 'PC Maintenance',
+                'badge_class' => 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+                'icon'        => 'o-computer-desktop',
+                'icon_color'  => 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20',
+                'details'     => [
+                    'Teknisi'          => $pm->technician?->name ?? 'Tim IT',
+                    'Kondisi Hardware' => $pm->hardware_status ?? 'OK',
+                    'Kondisi Software' => $pm->software_status ?? 'OK',
+                    'Catatan'          => $pm->notes ?: '-',
+                ],
+            ];
+        }
+
+        // Urutkan dari yang terbaru ke terlama
+        usort($events, fn ($a, $b) => $b['date']->timestamp <=> $a['date']->timestamp);
+
+        // Cari mutasi pembelian khusus
+        $pembelianEvent = collect($events)->firstWhere('type', 'pembelian');
+        $totalPerpindahan = collect($events)->where('type', 'perpindahan')->count();
+        $totalService = collect($events)->whereIn('type', ['service_internal', 'service_eksternal'])->count();
+
+        // Filter berdasarkan tab
+        $filteredEvents = match ($this->historyTab) {
+            'mutasi'  => array_values(array_filter($events, fn($e) => $e['category'] === 'mutasi')),
+            'service' => array_values(array_filter($events, fn($e) => $e['category'] === 'service')),
+            default   => $events,
+        };
+
+        return [
+            'barang'           => $barang,
+            'events'           => $filteredEvents,
+            'totalEvents'      => count($events),
+            'pembelian'        => $pembelianEvent,
+            'totalPerpindahan' => $totalPerpindahan,
+            'totalService'     => $totalService,
+        ];
+    }
+
     public function render()
     {
         $term = '%' . $this->search . '%';
@@ -505,6 +703,8 @@ class Index extends Component
             'rusak'          => Barang::whereIn('status', ['rusak', 'tidak_aktif'])->count(),
         ];
 
-        return view('livewire.barangs.index', compact('barangs', 'pemakais', 'departments', 'kategoriList', 'statusList', 'stats', 'kategoriOptions', 'pemakaiOptions'));
+        $historyData = $this->historyData;
+
+        return view('livewire.barangs.index', compact('barangs', 'pemakais', 'departments', 'kategoriList', 'statusList', 'stats', 'kategoriOptions', 'pemakaiOptions', 'historyData'));
     }
 }

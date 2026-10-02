@@ -140,6 +140,9 @@
                                     <button wire:click="openDetailModal({{ $mutasi->id }})" class="btn btn-ghost btn-circle btn-xs text-info hover:bg-info/10" title="Lihat Detail Barang">
                                         <x-mary-icon name="o-eye" class="w-4 h-4" />
                                     </button>
+                                    <button wire:click="openEditModal({{ $mutasi->id }})" class="btn btn-ghost btn-circle btn-xs text-warning hover:bg-warning/10" title="Edit Mutasi">
+                                        <x-mary-icon name="o-pencil-square" class="w-4 h-4" />
+                                    </button>
                                     <button wire:click="deleteMutasi({{ $mutasi->id }})" wire:confirm="Hapus mutasi '{{ $mutasi->no_mutasi }}'? Efek perubahan pemakai/status barang akan di-rollback." class="btn btn-ghost btn-circle btn-xs text-error hover:bg-error/10" title="Hapus Mutasi">
                                         <x-mary-icon name="o-trash" class="w-4 h-4" />
                                     </button>
@@ -176,10 +179,13 @@
                     <div class="p-1.5 rounded-lg bg-primary/10 text-primary">
                         <x-mary-icon name="o-arrows-right-left" class="w-5 h-5" />
                     </div>
-                    <span>Buat Mutasi Barang</span>
+                    <span>{{ $mutasiId ? 'Edit Mutasi Barang: ' . $no_mutasi_preview : 'Buat Mutasi Barang' }}</span>
                 </h3>
-                <p class="text-xs opacity-60 mt-0.5">Form transaksi pengadaan, penjualan, atau mutasi perpindahan pemakai</p>
+                <p class="text-xs opacity-60 mt-0.5">{{ $mutasiId ? 'Perbarui data transaksi dan rincian barang mutasi' : 'Form transaksi pengadaan, penjualan, atau mutasi perpindahan pemakai' }}</p>
             </div>
+            @if($mutasiId)
+                <span class="badge badge-warning badge-sm font-semibold">Mode Edit</span>
+            @endif
         </div>
 
         <form wire:submit="save" class="space-y-6">
@@ -292,7 +298,7 @@
                 <button type="button" wire:click="$set('showModal', false)" class="btn btn-ghost btn-sm w-full sm:w-auto rounded-xl">Batal</button>
                 <button type="submit" class="btn btn-primary btn-sm px-6 shadow-md shadow-primary/20 w-full sm:w-auto rounded-xl font-bold" wire:loading.attr="disabled">
                     <span wire:loading class="loading loading-spinner loading-xs"></span>
-                    Simpan Transaksi Mutasi
+                    {{ $mutasiId ? 'Simpan Perubahan' : 'Simpan Transaksi Mutasi' }}
                 </button>
             </div>
         </form>

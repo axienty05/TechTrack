@@ -246,4 +246,64 @@ class InventorySystemTest extends TestCase
         $internal = MServiceInternal::where('m_barang_id', $barang->id)->first();
         $this->assertNotNull($internal);
     }
+
+    public function test_edit_mutasi_preserves_number_and_updates_data()
+    {
+        $pemakai1 = Pemakai::create(['nama' => 'User Edit Asal ' . uniqid(), 'status' => true]);
+        $pemakai2 = Pemakai::create(['nama' => 'User Edit Tengah ' . uniqid(), 'status' => true]);
+        $pemakai3 = Pemakai::create(['nama' => 'User Edit Akhir ' . uniqid(), 'status' => true]);
+
+        $barang = Barang::create([
+            'kode_barang'  => Barang::generateKode(),
+            'nama_barang'  => 'Scanner ScanSnap ' . uniqid(),
+            'kategori'     => 'scanner',
+            'm_pemakai_id' => $pemakai1->id,
+            'status'       => 'aktif',
+        ]);
+
+        // 1. Create mutasi perpindahan from pemakai1 to pemakai2
+        $component = Livewire::actingAs($this->user)
+            ->test(\App\Livewire\Mutasis\Index::class)
+            ->call('openCreateModal')
+            ->set('jenis_mutasi', 'perpindahan')
+            ->set('tgl_mutasi', now()->format('Y-m-d'))
+            ->set('details', [
+                [
+                    'm_barang_id'  => $barang->id,
+                    'pemakai_lama' => $pemakai1->id,
+                    'pemakai_baru' => $pemakai2->id,
+                    'harga'        => 0,
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $mutasi = MtMutasi::whereHas('dtMutasis', fn ($q) => $q->where('m_barang_id', $barang->id))->first();
+        $this->assertNotNull($mutasi);
+        $originalNo = $mutasi->no_mutasi;
+        $this->assertEquals($pemakai2->id, $barang->fresh()->m_pemakai_id);
+
+        // 2. Edit mutasi to change pemakai_baru to pemakai3 and change date
+        $newDate = now()->subDays(2)->format('Y-m-d');
+        $component->call('openEditModal', $mutasi->id)
+            ->assertSet('mutasiId', $mutasi->id)
+            ->assertSet('no_mutasi_preview', $originalNo)
+            ->set('tgl_mutasi', $newDate)
+            ->set('details', [
+                [
+                    'm_barang_id'  => $barang->id,
+                    'pemakai_lama' => $pemakai1->id,
+                    'pemakai_baru' => $pemakai3->id,
+                    'harga'        => 0,
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        // 3. Verify no_mutasi is PRESERVED, date is updated, and barang owner is now pemakai3
+        $mutasiFresh = $mutasi->fresh();
+        $this->assertEquals($originalNo, $mutasiFresh->no_mutasi, 'Nomor mutasi tidak boleh berubah saat diedit');
+        $this->assertEquals($newDate, $mutasiFresh->tgl_mutasi->format('Y-m-d'));
+        $this->assertEquals($pemakai3->id, $barang->fresh()->m_pemakai_id, 'Owner barang harus terupdate ke pemakai baru');
+    }
 }

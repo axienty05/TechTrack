@@ -65,7 +65,11 @@ class Index extends Component
         ];
 
         if ($this->pemakaiId) {
-            Pemakai::findOrFail($this->pemakaiId)->update($data);
+            $pemakai = Pemakai::findOrFail($this->pemakaiId);
+            $pemakai->update($data);
+            if (!empty($this->comp_name)) {
+                $pemakai->computerDevices()->update(['comp_name' => $this->comp_name]);
+            }
             $this->success('Pemakai berhasil diperbarui!');
         } else {
             Pemakai::create($data);
@@ -77,13 +81,15 @@ class Index extends Component
 
     public function delete(int $id)
     {
-        $pemakai = Pemakai::withCount(['barangs', 'computerDevices'])->findOrFail($id);
+        $pemakai = Pemakai::withCount('barangs')->findOrFail($id);
 
-        $total = $pemakai->barangs_count + $pemakai->computer_devices_count;
-        if ($total > 0) {
-            $this->error("Pemakai tidak dapat dihapus karena masih memiliki {$pemakai->barangs_count} barang dan {$pemakai->computer_devices_count} perangkat terhubung.");
+        if ($pemakai->barangs_count > 0) {
+            $this->error("Pemakai tidak dapat dihapus karena masih memegang {$pemakai->barangs_count} barang inventaris. Harap mutasikan atau lepaskan barang terlebih dahulu.");
             return;
         }
+
+        // Lepas relasi perangkat komputer terhubung (unassign)
+        $pemakai->computerDevices()->update(['m_pemakai_id' => null]);
 
         $pemakai->delete();
         $this->success('Pemakai berhasil dihapus!');

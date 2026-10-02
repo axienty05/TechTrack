@@ -57,14 +57,50 @@ class Index extends Component
         $this->showDetailModal = true;
     }
 
+    public function openEditModal(int $id): void
+    {
+        $this->resetErrorBag();
+        $mt = MtMutasi::with('dtMutasis')->findOrFail($id);
+        $this->mutasiId = $mt->id;
+        $this->jenis_mutasi = $mt->jenis_mutasi;
+        $this->m_supplier_id = $mt->m_supplier_id;
+        $this->tgl_mutasi = $mt->tgl_mutasi ? $mt->tgl_mutasi->format('Y-m-d') : now()->format('Y-m-d');
+        $this->keterangan = $mt->keterangan ?? '';
+        $this->no_mutasi_preview = $mt->no_mutasi;
+        $this->details = [];
+
+        foreach ($mt->dtMutasis as $dt) {
+            $this->details[] = [
+                'm_barang_id'  => $dt->m_barang_id,
+                'pemakai_lama' => $dt->pemakai_lama ?? 0,
+                'pemakai_baru' => $dt->pemakai_baru,
+                'harga'        => $dt->harga ?? 0,
+            ];
+        }
+
+        if (empty($this->details)) {
+            $this->details = [
+                ['m_barang_id' => '', 'pemakai_lama' => 0, 'pemakai_baru' => '', 'harga' => 0],
+            ];
+        }
+
+        $this->showModal = true;
+    }
+
     public function updatedJenisMutasi()
     {
-        $this->updateNoMutasiPreview();
+        if (!$this->mutasiId) {
+            $this->updateNoMutasiPreview();
+        }
     }
 
     public function updateNoMutasiPreview()
     {
-        $this->no_mutasi_preview = MtMutasi::generateNo($this->jenis_mutasi);
+        if ($this->mutasiId) {
+            $this->no_mutasi_preview = MtMutasi::find($this->mutasiId)?->no_mutasi ?? '';
+        } else {
+            $this->no_mutasi_preview = MtMutasi::generateNo($this->jenis_mutasi);
+        }
     }
 
     public function addDetail()
@@ -128,15 +164,45 @@ class Index extends Component
             return;
         }
 
-        $noMutasi = MtMutasi::generateNo($this->jenis_mutasi);
+        if ($this->mutasiId) {
+            $mt = MtMutasi::with('dtMutasis')->findOrFail($this->mutasiId);
 
-        $mt = MtMutasi::create([
-            'no_mutasi'     => $noMutasi,
-            'm_supplier_id' => ($this->jenis_mutasi === 'pembelian') ? $this->m_supplier_id : null,
-            'jenis_mutasi'  => $this->jenis_mutasi,
-            'tgl_mutasi'    => $this->tgl_mutasi,
-            'keterangan'    => ($this->jenis_mutasi !== 'perpindahan') ? ($this->keterangan ?: null) : null,
-        ]);
+            // Rollback previous side-effects before applying new ones to avoid orphaned states
+            if ($mt->jenis_mutasi === 'perpindahan') {
+                foreach ($mt->dtMutasis as $oldDt) {
+                    if ($oldDt->pemakai_lama) {
+                        Barang::where('id', $oldDt->m_barang_id)
+                              ->update(['m_pemakai_id' => $oldDt->pemakai_lama]);
+                    }
+                }
+            } elseif ($mt->jenis_mutasi === 'penjualan') {
+                foreach ($mt->dtMutasis as $oldDt) {
+                    Barang::where('id', $oldDt->m_barang_id)
+                          ->update(['status' => 'aktif']);
+                }
+            }
+
+            // Update master mutasi header (preserving existing no_mutasi!)
+            $mt->update([
+                'm_supplier_id' => ($this->jenis_mutasi === 'pembelian') ? $this->m_supplier_id : null,
+                'jenis_mutasi'  => $this->jenis_mutasi,
+                'tgl_mutasi'    => $this->tgl_mutasi,
+                'keterangan'    => ($this->jenis_mutasi !== 'perpindahan') ? ($this->keterangan ?: null) : null,
+            ]);
+
+            $mt->dtMutasis()->delete();
+            $noMutasi = $mt->no_mutasi;
+        } else {
+            $noMutasi = MtMutasi::generateNo($this->jenis_mutasi);
+
+            $mt = MtMutasi::create([
+                'no_mutasi'     => $noMutasi,
+                'm_supplier_id' => ($this->jenis_mutasi === 'pembelian') ? $this->m_supplier_id : null,
+                'jenis_mutasi'  => $this->jenis_mutasi,
+                'tgl_mutasi'    => $this->tgl_mutasi,
+                'keterangan'    => ($this->jenis_mutasi !== 'perpindahan') ? ($this->keterangan ?: null) : null,
+            ]);
+        }
 
         foreach ($this->details as $detail) {
             DtMutasi::create([
@@ -160,7 +226,7 @@ class Index extends Component
             }
         }
 
-        $this->success("Mutasi {$noMutasi} berhasil dibuat!");
+        $this->success("Mutasi {$noMutasi} berhasil " . ($this->mutasiId ? 'diperbarui' : 'dibuat') . '!');
         $this->showModal = false;
     }
 
@@ -216,7 +282,8 @@ class Index extends Component
 
         // Barang yang sudah pernah di-mutasi pembelian — dikecualikan saat jenis_mutasi = pembelian
         $barangSudahDibeliIds = $this->jenis_mutasi === 'pembelian'
-            ? DtMutasi::whereHas('mtMutasi', fn ($q) => $q->where('jenis_mutasi', 'pembelian'))
+            ? DtMutasi::whereHas('mtMutasi', fn ($q) => $q->where('jenis_mutasi', 'pembelian')
+                ->when($this->mutasiId, fn ($q2) => $q2->where('id', '!=', $this->mutasiId)))
                 ->pluck('m_barang_id')
                 ->map(fn ($id) => (int) $id)
                 ->unique()

@@ -122,12 +122,14 @@
                         <tr class="hover:bg-base-200/30 transition-colors">
                             <td class="font-mono text-xs opacity-50 text-center">{{ $barangs->firstItem() + $idx }}</td>
                             <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 font-mono font-extrabold text-xs">
+                                <button type="button" wire:click="openHistoryModal({{ $barang->id }})" class="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 font-mono font-extrabold text-xs hover:bg-primary/20 transition-colors" title="Klik untuk lihat riwayat lengkap barang">
                                     {{ $barang->kode_barang }}
-                                </span>
+                                </button>
                             </td>
                             <td>
-                                <div class="font-bold text-sm text-base-content">{{ $barang->nama_barang }}</div>
+                                <button type="button" wire:click="openHistoryModal({{ $barang->id }})" class="text-left font-bold text-sm text-base-content hover:text-primary transition-colors block" title="Klik untuk lihat riwayat lengkap barang">
+                                    {{ $barang->nama_barang }}
+                                </button>
                                 @if($barang->keterangan)
                                     <div class="text-[11px] opacity-50 truncate max-w-[220px]">{{ $barang->keterangan }}</div>
                                 @endif
@@ -173,6 +175,9 @@
                             </td>
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-1">
+                                    <button wire:click="openHistoryModal({{ $barang->id }})" class="btn btn-ghost btn-circle btn-xs text-info hover:bg-info/10" title="Lihat Riwayat & Lifecycle Barang">
+                                        <x-mary-icon name="o-clock" class="w-4 h-4" />
+                                    </button>
                                     <button wire:click="openEditModal({{ $barang->id }})" class="btn btn-ghost btn-circle btn-xs text-warning hover:bg-warning/10" title="Edit Barang">
                                         <x-mary-icon name="o-pencil-square" class="w-4 h-4" />
                                     </button>
@@ -417,5 +422,219 @@
                 </div>
             </form>
         </div>
+    </x-mary-modal>
+
+    {{-- Modal Riwayat & Lifecycle Barang --}}
+    <x-mary-modal wire:model="showHistoryModal" class="backdrop-blur-sm" box-class="max-w-4xl p-4 sm:p-6 w-full max-h-[92vh] overflow-y-auto" without-trap-focus>
+        @if($historyData && $historyData['barang'])
+            @php
+                $hBarang = $historyData['barang'];
+                $statusBadges = [
+                    'aktif' => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                    'tidak_aktif' => 'bg-base-200 text-base-content/60 border-base-content/10',
+                    'sedang_service' => 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                    'rusak' => 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+                    'dijual' => 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+                ];
+            @endphp
+
+            {{-- Header Modal --}}
+            <div class="flex items-start justify-between pb-4 border-b border-base-content/10 mb-4 gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
+                        <x-mary-icon name="o-clock" class="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="font-extrabold text-lg sm:text-xl text-base-content leading-tight">
+                                {{ $hBarang->nama_barang }}
+                            </h3>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                                {{ $hBarang->kode_barang }}
+                            </span>
+                        </div>
+                        <p class="text-xs opacity-60 mt-0.5">
+                            Kategori: <strong class="capitalize">{{ str_replace('_', ' ', $hBarang->kategori) }}</strong>
+                            &bull; S/N: <strong class="font-mono">{{ $hBarang->serial_number ?: 'Tanpa S/N' }}</strong>
+                        </p>
+                    </div>
+                </div>
+                {{-- Hanya 1 tombol tutup (tanpa tombol X manual, sudah ada dari x-mary-modal) --}}
+            </div>
+
+            {{-- Summary Cards --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                {{-- Status & Pemakai --}}
+                <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-content/5 space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider opacity-50">Posisi & Status Saat Ini</div>
+                    <div class="text-sm font-extrabold text-base-content flex items-center gap-1.5 truncate">
+                        <x-mary-icon name="o-user" class="w-4 h-4 text-primary shrink-0" />
+                        <span class="truncate">{{ $hBarang->pemakai?->nama ?? 'Gudang / Tanpa Pemakai' }}</span>
+                    </div>
+                    <div class="text-xs opacity-60 truncate">
+                        {{ $hBarang->pemakai?->department?->name ?? 'Belum teralokasi ke departemen' }}
+                    </div>
+                    <div class="pt-1">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statusBadges[$hBarang->status] ?? 'bg-base-200' }}">
+                            {{ ucfirst(str_replace('_', ' ', $hBarang->status)) }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Asal Pengadaan / Pembelian --}}
+                <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-content/5 space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider opacity-50">Asal Pembelian / Pengadaan</div>
+                    @if($historyData['pembelian'])
+                        <div class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 truncate">
+                            <x-mary-icon name="o-shopping-bag" class="w-4 h-4 shrink-0" />
+                            <span class="truncate">{{ $historyData['pembelian']['details']['Supplier / Vendor'] }}</span>
+                        </div>
+                        <div class="text-xs text-base-content/80 font-mono font-bold">
+                            {{ $historyData['pembelian']['details']['Harga Beli'] }}
+                        </div>
+                        <div class="text-[11px] opacity-70 flex items-center gap-1.5 flex-wrap">
+                            <span>Tgl: {{ $historyData['pembelian']['date']->format('d/m/Y') }}</span>
+                            <span>&bull;</span>
+                            {{-- No. Mutasi sebagai link --}}
+                            <a
+                                href="{{ $historyData['pembelian']['link'] }}"
+                                target="_blank"
+                                class="inline-flex items-center gap-1 font-mono font-bold text-primary hover:underline hover:text-primary/80 transition-colors"
+                                title="Buka halaman mutasi {{ $historyData['pembelian']['no_mutasi'] }}"
+                            >
+                                <x-mary-icon name="o-arrow-top-right-on-square" class="w-3 h-3" />
+                                {{ $historyData['pembelian']['no_mutasi'] }}
+                            </a>
+                        </div>
+                    @else
+                        <div class="text-xs opacity-40 italic flex items-center gap-1 pt-2">
+                            <x-mary-icon name="o-information-circle" class="w-4 h-4 shrink-0" />
+                            <span>Belum ada mutasi pembelian</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Rekap Jejak --}}
+                <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-content/5 space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider opacity-50">Statistik Rekam Jejak</div>
+                    <div class="flex items-center justify-between text-xs pt-0.5">
+                        <span class="opacity-70">Total Perpindahan:</span>
+                        <strong class="text-base-content">{{ $historyData['totalPerpindahan'] }} kali</strong>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="opacity-70">Total Service:</span>
+                        <strong class="text-base-content">{{ $historyData['totalService'] }} kali</strong>
+                    </div>
+                    <div class="flex items-center justify-between text-xs pt-1 border-t border-base-content/5">
+                        <span class="opacity-70">Total Aktivitas:</span>
+                        <strong class="text-primary">{{ $historyData['totalEvents'] }} peristiwa</strong>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tabs Filter --}}
+            <div class="flex items-center justify-between gap-2 border-b border-base-content/10 pb-3 mb-4 flex-wrap">
+                <div class="flex items-center gap-1.5 bg-base-200/70 p-1 rounded-xl text-xs font-semibold">
+                    <button
+                        type="button"
+                        wire:click="$set('historyTab', 'all')"
+                        class="px-3 py-1.5 rounded-lg transition-all {{ $historyTab === 'all' ? 'bg-base-100 text-primary shadow-sm font-bold' : 'opacity-60 hover:opacity-100' }}"
+                    >
+                        Semua Riwayat ({{ $historyData['totalEvents'] }})
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('historyTab', 'mutasi')"
+                        class="px-3 py-1.5 rounded-lg transition-all {{ $historyTab === 'mutasi' ? 'bg-base-100 text-indigo-600 shadow-sm font-bold' : 'opacity-60 hover:opacity-100' }}"
+                    >
+                        Mutasi & Pembelian
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('historyTab', 'service')"
+                        class="px-3 py-1.5 rounded-lg transition-all {{ $historyTab === 'service' ? 'bg-base-100 text-amber-600 shadow-sm font-bold' : 'opacity-60 hover:opacity-100' }}"
+                    >
+                        Riwayat Service
+                    </button>
+                </div>
+                <div class="text-[11px] opacity-50 italic">
+                    Diurutkan dari peristiwa terbaru
+                </div>
+            </div>
+
+            {{-- Timeline Events --}}
+            @if(count($historyData['events']) > 0)
+                <div class="relative pl-6 sm:pl-8 space-y-4 before:absolute before:left-2.5 sm:before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-base-content/10 pb-2">
+                    @foreach($historyData['events'] as $evt)
+                        <div class="relative group">
+                            <!-- Node Circle -->
+                            <div class="absolute -left-6 sm:-left-8 top-1 w-5 sm:w-6 h-5 sm:h-6 rounded-full flex items-center justify-center border {{ $evt['icon_color'] }} shadow-sm">
+                                <x-mary-icon name="{{ $evt['icon'] }}" class="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+                            </div>
+
+                            <!-- Content Card -->
+                            <div class="p-3.5 sm:p-4 rounded-xl bg-base-200/40 hover:bg-base-200/70 border border-base-content/5 transition-colors">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs sm:text-sm font-bold text-base-content">{{ $evt['title'] }}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $evt['badge_class'] }}">
+                                            {{ $evt['badge'] }}
+                                        </span>
+                                    </div>
+                                    <span class="text-xs font-mono font-medium opacity-60 flex items-center gap-1">
+                                        <x-mary-icon name="o-calendar" class="w-3.5 h-3.5" />
+                                        {{ $evt['date']->format('d M Y') }}
+                                    </span>
+                                </div>
+
+                                @if(!empty($evt['subtitle']))
+                                    <div class="text-xs font-mono font-semibold mb-2">
+                                        @if(!empty($evt['link']))
+                                            {{-- Subtitle jadi link untuk event mutasi --}}
+                                            <a
+                                                href="{{ $evt['link'] }}"
+                                                target="_blank"
+                                                class="inline-flex items-center gap-1 text-primary/80 hover:text-primary hover:underline transition-colors"
+                                                title="Buka detail mutasi {{ $evt['no_mutasi'] ?? '' }}"
+                                            >
+                                                <x-mary-icon name="o-arrow-top-right-on-square" class="w-3 h-3" />
+                                                {{ $evt['subtitle'] }}
+                                            </a>
+                                        @else
+                                            <span class="text-base-content/60">{{ $evt['subtitle'] }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1.5 border-t border-base-content/5">
+                                    @foreach($evt['details'] as $label => $val)
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] uppercase font-bold tracking-wider opacity-50">{{ $label }}</span>
+                                            <span class="font-medium text-base-content">{{ $val }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="py-12 text-center">
+                    <div class="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-base-content/30 mx-auto mb-2">
+                        <x-mary-icon name="o-inbox" class="w-6 h-6" />
+                    </div>
+                    <div class="font-bold text-sm opacity-70">Belum Ada Rekam Jejak</div>
+                    <p class="text-xs opacity-50 mt-1 max-w-sm mx-auto">
+                        Barang ini belum memiliki catatan transaksi mutasi (pembelian/perpindahan) ataupun riwayat service pada filter yang dipilih.
+                    </p>
+                </div>
+            @endif
+
+            <div class="flex justify-end pt-4 border-t border-base-content/10 mt-4">
+                <button type="button" wire:click="$set('showHistoryModal', false)" class="btn btn-ghost btn-sm rounded-xl">
+                    Tutup
+                </button>
+            </div>
+        @endif
     </x-mary-modal>
 </div>

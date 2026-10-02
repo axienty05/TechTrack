@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventaris/barang/{barang}/edit', \App\Livewire\Barangs\Form::class)->name('barangs.edit');
     Route::get('/inventaris/mutasi', \App\Livewire\Mutasis\Index::class)->name('mutasis');
     Route::get('/inventaris/mutasi/tambah', \App\Livewire\Mutasis\Form::class)->name('mutasis.create');
+    Route::get('/inventaris/mutasi/{id}/edit', \App\Livewire\Mutasis\Form::class)->name('mutasis.edit');
     Route::get('/inventaris/supplier', \App\Livewire\Suppliers\Index::class)->name('suppliers');
     Route::get('/inventaris/service-center', \App\Livewire\ServiceCenters\Index::class)->name('service-centers');
     Route::get('/inventaris/service', \App\Livewire\Services\Index::class)->name('services');

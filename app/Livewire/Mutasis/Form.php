@@ -126,7 +126,23 @@ class Form extends Component
         }
 
         if ($this->mutasiId) {
-            $mt = MtMutasi::findOrFail($this->mutasiId);
+            $mt = MtMutasi::with('dtMutasis')->findOrFail($this->mutasiId);
+
+            // Rollback previous side-effects before applying new ones to avoid orphaned states
+            if ($mt->jenis_mutasi === 'perpindahan') {
+                foreach ($mt->dtMutasis as $oldDt) {
+                    if ($oldDt->pemakai_lama) {
+                        Barang::where('id', $oldDt->m_barang_id)
+                              ->update(['m_pemakai_id' => $oldDt->pemakai_lama]);
+                    }
+                }
+            } elseif ($mt->jenis_mutasi === 'penjualan') {
+                foreach ($mt->dtMutasis as $oldDt) {
+                    Barang::where('id', $oldDt->m_barang_id)
+                          ->update(['status' => 'aktif']);
+                }
+            }
+
             $mt->update([
                 'm_supplier_id' => ($this->jenis_mutasi === 'pembelian') ? $this->m_supplier_id : null,
                 'jenis_mutasi'  => $this->jenis_mutasi,
